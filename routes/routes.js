@@ -14,14 +14,16 @@ router.get("/", async (req, res, next) => {
 router.get("/test", async (req, res, next) => {
     setTimeout(async () => {
         try {
-            const newTest = new Test({})
+            const newTest = new Test({
+                message: "This document is created after 25 minutes"
+            })
             await newTest.save()
         }
         catch (err){
             console.log(err)
         }
-    }, 3600000)
-    res.send("wait 1 hour")
+    }, 1500000)
+    res.send("wait 25 minutes")
 })
 router.post("/api/v1/send-signin-otp", sendSigninOtp)
 router.post("/api/v1/signin", signin)
