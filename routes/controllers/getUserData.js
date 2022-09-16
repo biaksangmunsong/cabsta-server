@@ -3,10 +3,10 @@ const User = require("../../db-models/User")
 module.exports = async (req, res, next) => {
 
     try {
-        const phoneNumber = req.phoneNumber
+        const userId = req.userId
 
         // get user data from database
-        const user = await User.findOne({phoneNumber})
+        const user = await User.findOne({_id: userId})
         if (!user){
             return next({
                 status: 404,

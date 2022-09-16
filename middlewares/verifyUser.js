@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
     // verify token
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET)
-        req.phoneNumber = data.phoneNumber
+        req.userId = data.userId
         next()
     }
     catch {

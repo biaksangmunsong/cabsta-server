@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 const Otp = require("../../db-models/Otp")
@@ -10,7 +11,7 @@ module.exports = async (req, res, next) => {
         const otp = String(req.body.otp || "")
         
         // get otp doc from database
-        const otpDocRaw = await Otp.findOne({otpId})
+        const otpDocRaw = await Otp.findOne({id: otpId})
         if (!otpDocRaw){
             return next({
                 status: 403,
@@ -37,13 +38,17 @@ module.exports = async (req, res, next) => {
         if (!user){
             // create new user
             const newUser = new User({
+                _id: new mongoose.Types.ObjectId().toHexString(),
                 phoneNumber: otpDoc.phoneNumber,
                 countryCode: otpDoc.countryCode
             })
             await newUser.save()
             
             // generate jwt
-            const authToken = jwt.sign({phoneNumber: otpDoc.phoneNumber}, process.env.JWT_SECRET)
+            const authToken = jwt.sign({
+                userId: newUser._id,
+                phoneNumber: otpDoc.phoneNumber
+            }, process.env.JWT_SECRET)
 
             try {
                 // delete otp doc
@@ -73,7 +78,10 @@ module.exports = async (req, res, next) => {
         }
         else {
             // generate jwt
-            const authToken = jwt.sign({phoneNumber: otpDoc.phoneNumber}, process.env.JWT_SECRET)
+            const authToken = jwt.sign({
+                userId: user._id,
+                phoneNumber: otpDoc.phoneNumber
+            }, process.env.JWT_SECRET)
 
             try {
                 // delete otp doc

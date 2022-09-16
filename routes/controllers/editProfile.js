@@ -4,7 +4,7 @@ const cloudinary = require("cloudinary").v2
 module.exports = async (req, res, next) => {
 
     try {
-        const phoneNumber = req.phoneNumber
+        const userId = req.userId
         let profilePhoto = String(req.body.profilePhoto || "")
         const name = String(req.body.name || "")
 
@@ -73,7 +73,7 @@ module.exports = async (req, res, next) => {
         }
 
         // get user data from database
-        const user = await User.findOne({phoneNumber})
+        const user = await User.findOne({_id: userId})
         if (!user){
             return next({
                 status: 404,
