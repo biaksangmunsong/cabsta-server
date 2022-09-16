@@ -1,4 +1,0 @@
-runtime: nodejs14
-env_variables:
-  JWT_SECRET: 39FezcThOUsnG44CvWUv67jEz73nmp6rtRcybN0vJerGXb8ZL42jF3s5uPEhiKKE9nb3D0Qa01k97u9GO4X42U7iu2Fh4lkvt78c
-  MONGODB_URL: mongodb+srv://cabsta-server:gUGno4IbBqVfUcJK@cluster0.mwjbctf.mongodb.net/cabsta?retryWrites=true&w=majority
