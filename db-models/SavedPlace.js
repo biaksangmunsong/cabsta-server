@@ -14,7 +14,7 @@ const SavedPlaceSchema = new Schema({
         type: "String",
         required: true
     },
-    coords: {
+    location: {
         type: Map,
         required: true
     },

@@ -8,25 +8,40 @@ const editProfile = require("./controllers/editProfile")
 const addSavedPlace = require("./controllers/addSavedPlace")
 const editSavedPlace = require("./controllers/editSavedPlace")
 const getSavedPlace = require("./controllers/getSavedPlace")
+const getSavedPlaces = require("./controllers/getSavedPlaces")
 
-const Test = require("../db-models/Test")
+const SavedPlace = require("../db-models/SavedPlace")
 
 router.get("/", async (req, res, next) => {
     res.redirect("https://cabsta-dev.netlify.app/")
 })
 router.get("/test", async (req, res, next) => {
-    setTimeout(async () => {
-        try {
-            const newTest = new Test({
-                message: "This document is created after 25 minutes"
-            })
-            await newTest.save()
-        }
-        catch (err){
-            console.log(err)
-        }
-    }, 1500000)
-    res.send("wait 25 minutes")
+    try {
+        const places = await SavedPlace.find({
+            location: {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [
+                            93.670855, // longitude
+                            24.333492 // latitude
+                        ]
+                    },
+                    $minDistance: 10,
+                    $maxDistance: 3000
+                }
+            }
+        }).limit(2)
+        res.json(places)
+    }
+    catch (err){
+        console.log(err)
+        next({
+            data: {
+                message: "Internal server error"
+            }
+        })
+    }
 })
 router.post("/api/v1/send-signin-otp", sendSigninOtp)
 router.post("/api/v1/signin", signin)
@@ -35,5 +50,6 @@ router.post("/api/v1/edit-profile", verifyUser, editProfile)
 router.post("/api/v1/add-saved-place", verifyUser, addSavedPlace)
 router.post("/api/v1/edit-saved-place", verifyUser, editSavedPlace)
 router.get("/api/v1/get-saved-place", verifyUser, getSavedPlace)
+router.get("/api/v1/get-saved-places", verifyUser, getSavedPlaces)
 
 module.exports = router

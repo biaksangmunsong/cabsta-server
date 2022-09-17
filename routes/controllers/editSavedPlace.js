@@ -84,7 +84,10 @@ module.exports = async (req, res, next) => {
         // update
         place.title = title
         place.formattedAddress = formattedAddress
-        place.coords = coords
+        place.location = {
+            type: "Point",
+            coordinates: [coords.lng,coords.lat]
+        }
         place.lastModified = Date.now()
         
         await place.save()
@@ -98,7 +101,7 @@ module.exports = async (req, res, next) => {
             user: place.user,
             title: place.title,
             formattedAddress: place.formattedAddress,
-            coords: place.coords,
+            location: place.location,
             lastModified: place.lastModified,
             createdAt: place.createdAt
         })

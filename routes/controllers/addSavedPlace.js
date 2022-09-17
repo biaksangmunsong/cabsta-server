@@ -66,7 +66,10 @@ module.exports = async (req, res, next) => {
             user: userId,
             title,
             formattedAddress,
-            coords,
+            location: {
+                type: "Point",
+                coordinates: [coords.lng,coords.lat]
+            },
             lastModified: now,
             createdAt: now
         })
@@ -82,7 +85,7 @@ module.exports = async (req, res, next) => {
             user: newPlace.user,
             title: newPlace.title,
             formattedAddress: newPlace.formattedAddress,
-            coords: newPlace.coords,
+            location: newPlace.location,
             lastModified: newPlace.lastModified,
             createdAt: newPlace.createdAt
         })
