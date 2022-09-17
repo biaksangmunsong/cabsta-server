@@ -4,7 +4,7 @@ module.exports = async (req, res, next) => {
 
     try {
         const userId = req.userId
-        const placeId = String(req.body.placeId || "")
+        const placeId = String(req.query.placeId || "")
         
         if (!placeId){
             return next({
