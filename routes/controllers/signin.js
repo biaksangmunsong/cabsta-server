@@ -12,7 +12,7 @@ module.exports = async (req, res, next) => {
         
         // get otp doc from database
         const otpDocRaw = await Otp.findOne({id: otpId})
-        if (!otpDocRaw){
+        if (!otpDocRaw || otpDocRaw.for !== "signin"){
             return next({
                 status: 403,
                 data: {

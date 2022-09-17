@@ -17,13 +17,17 @@ const OtpSchema = new Schema({
     countryCode: {
         type: String
     },
+    data: {
+        type: Map,
+        default: {}
+    },
     lastSent: {
         type: Number,
         default: Date.now
     },
     createdAt: {
         type: Date,
-        expires: "1m",
+        expires: 60,
         default: new Date
     }
 })

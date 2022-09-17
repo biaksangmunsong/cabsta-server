@@ -25,7 +25,7 @@ module.exports = async (req, res, next) => {
                     status: 400,
                     data: {
                         code: "otp-temporarily-not-allowed",
-                        message: "Cannot send otp to this phone number right now, please try again later."
+                        message: "Cannot send otp to this phone number right now (reason: too many attempts), please try again later."
                     }
                 })
             }
@@ -33,7 +33,7 @@ module.exports = async (req, res, next) => {
                 let cannotSendOtpForNow = false
                 for (let i = 0; i < otpDocs.length; i++){
                     const otpDoc = otpDocs[i]
-                    if (Date.now()-otpDoc.lastSent < 10000){
+                    if (otpDoc.for === "signin" && Date.now()-otpDoc.lastSent < 10000){
                         cannotSendOtpForNow = true
                         break
                     }
@@ -67,7 +67,7 @@ module.exports = async (req, res, next) => {
             })
             await newOtp.save()
             
-            // send response anyway
+            // send response
             res
             .status(200)
             .setHeader("Cache-Control", "no-store")

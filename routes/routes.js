@@ -9,6 +9,7 @@ const addSavedPlace = require("./controllers/addSavedPlace")
 const editSavedPlace = require("./controllers/editSavedPlace")
 const getSavedPlace = require("./controllers/getSavedPlace")
 const getSavedPlaces = require("./controllers/getSavedPlaces")
+const sendPhoneNumberChangeOtp = require("./controllers/sendPhoneNumberChangeOtp")
 
 const SavedPlace = require("../db-models/SavedPlace")
 
@@ -51,5 +52,6 @@ router.post("/api/v1/add-saved-place", verifyUser, addSavedPlace)
 router.post("/api/v1/edit-saved-place", verifyUser, editSavedPlace)
 router.get("/api/v1/get-saved-place", verifyUser, getSavedPlace)
 router.get("/api/v1/get-saved-places", verifyUser, getSavedPlaces)
+router.post("/api/v1/send-phone-number-change-otp", verifyUser, sendPhoneNumberChangeOtp)
 
 module.exports = router
