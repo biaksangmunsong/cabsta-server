@@ -7,6 +7,7 @@ const getUserData = require("./controllers/getUserData")
 const editProfile = require("./controllers/editProfile")
 const addSavedPlace = require("./controllers/addSavedPlace")
 const editSavedPlace = require("./controllers/editSavedPlace")
+const getSavedPlace = require("./controllers/getSavedPlace")
 
 const Test = require("../db-models/Test")
 
@@ -33,5 +34,6 @@ router.get("/api/v1/get-user-data", verifyUser, getUserData)
 router.post("/api/v1/edit-profile", verifyUser, editProfile)
 router.post("/api/v1/add-saved-place", verifyUser, addSavedPlace)
 router.post("/api/v1/edit-saved-place", verifyUser, editSavedPlace)
+router.get("/api/v1/get-saved-place", verifyUser, getSavedPlace)
 
 module.exports = router
