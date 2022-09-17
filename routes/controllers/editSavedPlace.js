@@ -1,15 +1,23 @@
-const mongoose = require("mongoose")
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
 
     try {
         const userId = req.userId
+        const placeId = String(req.body.placeId || "")
         const title = String(req.body.title || "")
         const formattedAddress = String(req.body.formattedAddress || "")
         const coords = req.body.coords
 
         // validate input
+        if (!placeId){
+            return next({
+                status: 406,
+                data: {
+                    message: "Please specify a place to edit"
+                }
+            })
+        }
         if (!title){
             return next({
                 status: 406,
@@ -59,32 +67,40 @@ module.exports = async (req, res, next) => {
             })
         }
 
-        // add place to database
-        const now = Date.now()
-        const newPlace = new SavedPlace({
-            _id: new mongoose.Types.ObjectId().toHexString(),
-            user: userId,
-            title,
-            formattedAddress,
-            coords,
-            lastModified: now,
-            createdAt: now
+        // check if place document with placeId exist in database
+        const place = await SavedPlace.findOne({
+            _id: placeId,
+            user: userId
         })
+        if (!place){
+            return next({
+                status: 404,
+                data: {
+                    message: "Saved place not found in database"
+                }
+            })
+        }
 
-        await newPlace.save()
+        // update
+        place.title = title
+        place.formattedAddress = formattedAddress
+        place.coords = coords
+        place.lastModified = Date.now()
+        
+        await place.save()
 
         // send response
         res
         .status(200)
         .setHeader("Cache-Control", "no-store")
         .json({
-            _id: newPlace._id,
-            user: newPlace.user,
-            title: newPlace.title,
-            formattedAddress: newPlace.formattedAddress,
-            coords: newPlace.coords,
-            lastModified: newPlace.lastModified,
-            createdAt: newPlace.createdAt
+            _id: place._id,
+            user: place.user,
+            title: place.title,
+            formattedAddress: place.formattedAddress,
+            coords: place.coords,
+            lastModified: place.lastModified,
+            createdAt: place.createdAt
         })
     }
     catch (err){

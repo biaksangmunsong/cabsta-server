@@ -18,10 +18,13 @@ const SavedPlaceSchema = new Schema({
         type: Map,
         required: true
     },
+    lastModified: {
+        type: Number,
+        default: Date.now
+    },
     createdAt: {
-        type: Date,
-        expires: "1m",
-        default: new Date
+        type: Number,
+        default: Date.now
     }
 })
 
