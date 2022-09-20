@@ -9,7 +9,7 @@ module.exports = async (req, res, next) => {
         const name = String(req.body.name || "")
 
         // check if profile photo is valid
-        if (profilePhoto && !profilePhoto.startsWith("https://")){
+        if (profilePhoto && !profilePhoto.startsWith("https://") && profilePhoto !== "delete"){
             if (!profilePhoto.startsWith("data:image/")){
                 return next({
                     status: 406,
@@ -43,7 +43,9 @@ module.exports = async (req, res, next) => {
             }
         }
         else {
-            profilePhoto = ""
+            if (profilePhoto !== "delete"){
+                profilePhoto = ""
+            }
         }
         
         // check if name is valid
@@ -84,7 +86,7 @@ module.exports = async (req, res, next) => {
         }
 
         // update profile photo
-        if (profilePhoto){
+        if (profilePhoto && profilePhoto !== "delete"){
             // upload profile photo
             const uploadedFile = await cloudinary.uploader.upload(profilePhoto, {
                 public_id: `profile-photos/${user._id}`,
@@ -113,6 +115,22 @@ module.exports = async (req, res, next) => {
                 thumbnail_url: uploadedFile.eager[1].secure_url
             }
             user.name = name
+
+            await user.save()
+
+            // send response
+            res
+            .status(200)
+            .setHeader("Cache-Control", "no-store")
+            .json({
+                name,
+                profilePhoto: user.profilePhoto
+            })
+        }
+        else if (profilePhoto === "delete"){
+            await cloudinary.uploader.destroy(`profile-photos/${userId}`)
+            user.name = name
+            user.profilePhoto = undefined
 
             await user.save()
 
