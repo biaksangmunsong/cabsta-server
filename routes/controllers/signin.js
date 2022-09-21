@@ -28,7 +28,7 @@ module.exports = async (req, res, next) => {
             return next({
                 status: 403,
                 data: {
-                    message: "Invalid confirmation code"
+                    message: "Incorrect Otp"
                 }
             })
         }

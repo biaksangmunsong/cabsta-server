@@ -87,11 +87,7 @@ module.exports = async (req, res, next) => {
             phoneNumber: user.phoneNumber,
             countryCode: user.countryCode,
             data: {
-                userId: user._id.toString(),
-                newPhoneNumber: {
-                    phoneNumber: newPhoneNumber.phoneNumber,
-                    countryCode: newPhoneNumber.countryCode
-                }
+                newPhoneNumber: newPhoneNumber.phoneNumber
             }
         })
         await newOtp.save()

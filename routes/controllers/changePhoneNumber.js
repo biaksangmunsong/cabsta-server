@@ -1,21 +1,29 @@
 const User = require("../../db-models/User")
-const phone = require("phone")
+const Otp = require("../../db-models/Otp")
+const { phone } = require("phone")
+const bcrypt = require("bcryptjs")
 
 module.exports = async (req, res, next) => {
 
     try {
-        const phoneNumber = req.phoneNumber
-        if (!phoneNumber){
+        const userId = req.userId
+        const otp = String(req.body.otp || "")
+        const otpId = String(req.body.otpId || "")
+
+        // get otp doc from database
+        const otpDocRaw = await Otp.findOne({id: otpId})
+        if (!otpDocRaw || otpDocRaw.for !== "phone-number-change"){
             return next({
                 status: 403,
                 data: {
-                    message: "Access Denied"
+                    message: "Otp invalid or expired"
                 }
             })
         }
-
+        const otpDoc = otpDocRaw.toJSON()
+        
         // validate new phone number
-        const newPhoneNumber = phone(req.body.phoneNumber || "", {country: "IN"})
+        const newPhoneNumber = phone(otpDoc.data.newPhoneNumber || "", {country: "IN"})
         if (!newPhoneNumber.isValid){
             return next({
                 status: 406,
@@ -35,6 +43,42 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
+
+        // validate otp
+        const otpIsValid = await bcrypt.compare(otp, otpDoc.otp)
+        if (!otpIsValid){
+            return next({
+                status: 403,
+                data: {
+                    message: "Invalid Otp"
+                }
+            })
+        }
+
+        // update phone number
+        const user = await User.findOne({_id: userId})
+        if (!user){
+            return next({
+                status: 404,
+                data: {
+                    message: "User not found"
+                }
+            })
+        }
+
+        user.phoneNumber = newPhoneNumber.phoneNumber
+        user.countryCode = newPhoneNumber.countryCode
+
+        await user.save()
+
+        // send response
+        res
+        .status(200)
+        .setHeader("Cache-Control", "no-store")
+        .json({
+            phoneNumber: newPhoneNumber.phoneNumber,
+            countryCode: newPhoneNumber.countryCode
+        })
     }
     catch (err){
         console.log(err)
