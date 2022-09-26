@@ -14,6 +14,10 @@ const UserSchema = new Schema({
     profilePhoto: {
         type: Map
     },
+    jwtValidFrom: {
+        type: Number,
+        default: Date.now
+    },
     createdAt: {
         type: Number,
         default: Date.now

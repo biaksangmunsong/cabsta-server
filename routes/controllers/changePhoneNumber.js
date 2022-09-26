@@ -2,6 +2,7 @@ const User = require("../../db-models/User")
 const Otp = require("../../db-models/Otp")
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
 
 module.exports = async (req, res, next) => {
 
@@ -66,18 +67,29 @@ module.exports = async (req, res, next) => {
             })
         }
 
+        const now = Date.now()
+
         user.phoneNumber = newPhoneNumber.phoneNumber
         user.countryCode = newPhoneNumber.countryCode
+        user.jwtValidFrom = now
 
         await user.save()
 
+        // generate new jwt
+        const authToken = jwt.sign({
+            userId: user._id,
+            phoneNumber: user.phoneNumber,
+            iat: now
+        }, process.env.JWT_SECRET)
+        
         // send response
         res
         .status(200)
         .setHeader("Cache-Control", "no-store")
         .json({
             phoneNumber: newPhoneNumber.phoneNumber,
-            countryCode: newPhoneNumber.countryCode
+            countryCode: newPhoneNumber.countryCode,
+            authToken
         })
     }
     catch (err){

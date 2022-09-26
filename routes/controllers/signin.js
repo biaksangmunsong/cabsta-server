@@ -35,21 +35,24 @@ module.exports = async (req, res, next) => {
         
         // check if user already exists
         const user = await User.findOne({phoneNumber: otpDoc.phoneNumber})
+        const now = Date.now()
         if (!user){
             // create new user
             const newUser = new User({
                 _id: new mongoose.Types.ObjectId().toHexString(),
                 phoneNumber: otpDoc.phoneNumber,
-                countryCode: otpDoc.countryCode
+                countryCode: otpDoc.countryCode,
+                jwtValidFrom: now
             })
             await newUser.save()
             
             // generate jwt
             const authToken = jwt.sign({
                 userId: newUser._id,
-                phoneNumber: otpDoc.phoneNumber
+                phoneNumber: otpDoc.phoneNumber,
+                iat: now
             }, process.env.JWT_SECRET)
-
+            
             try {
                 // delete otp doc
                 await otpDocRaw.delete()
@@ -80,7 +83,8 @@ module.exports = async (req, res, next) => {
             // generate jwt
             const authToken = jwt.sign({
                 userId: user._id,
-                phoneNumber: otpDoc.phoneNumber
+                phoneNumber: otpDoc.phoneNumber,
+                iat: now
             }, process.env.JWT_SECRET)
 
             try {
