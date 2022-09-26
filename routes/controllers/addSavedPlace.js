@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (title.length > 200){
+        if (title.length > 100){
             return next({
                 status: 406,
                 data: {
