@@ -60,7 +60,7 @@ module.exports = async (req, res, next) => {
                 // send response
                 res
                 .status(200)
-                .setHeader("Cache-Control", "no-store")
+                .set("Cache-Control", "no-store")
                 .json({
                     phoneNumber: otpDoc.phoneNumber,
                     countryCode: otpDoc.countryCode,
@@ -71,7 +71,7 @@ module.exports = async (req, res, next) => {
                 // send response anyway
                 res
                 .status(200)
-                .setHeader("Cache-Control", "no-store")
+                .set("Cache-Control", "no-store")
                 .json({
                     phoneNumber: otpDoc.phoneNumber,
                     countryCode: otpDoc.countryCode,
@@ -94,7 +94,7 @@ module.exports = async (req, res, next) => {
                 // send response
                 res
                 .status(200)
-                .setHeader("Cache-Control", "no-store")
+                .set("Cache-Control", "no-store")
                 .json({
                     phoneNumber: otpDoc.phoneNumber,
                     countryCode: otpDoc.countryCode,
@@ -107,7 +107,7 @@ module.exports = async (req, res, next) => {
                 // send response anyway
                 res
                 .status(200)
-                .setHeader("Cache-Control", "no-store")
+                .set("Cache-Control", "no-store")
                 .json({
                     phoneNumber: otpDoc.phoneNumber,
                     countryCode: otpDoc.countryCode,

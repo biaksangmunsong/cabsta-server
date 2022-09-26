@@ -25,7 +25,7 @@ app.use((err, req, res, next) => {
     if (err){
         res
         .status(err.status)
-        .setHeader("Cache-Control", "no-store")
+        .set("Cache-Control", "no-store")
         .json(err.data)
     }
     else {

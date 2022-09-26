@@ -85,7 +85,7 @@ module.exports = async (req, res, next) => {
         // send response
         res
         .status(200)
-        .setHeader("Cache-Control", "no-store")
+        .set("Cache-Control", "no-store")
         .json({
             phoneNumber: newPhoneNumber.phoneNumber,
             countryCode: newPhoneNumber.countryCode,
