@@ -15,7 +15,7 @@ const changePhoneNumber = require("./controllers/changePhoneNumber")
 const SavedPlace = require("../db-models/SavedPlace")
 
 router.get("/", async (req, res, next) => {
-    res.redirect("https://cabsta-dev.netlify.app/")
+    res.send("Hello from Cabsta Api")
 })
 router.get("/test", async (req, res, next) => {
     try {
@@ -45,15 +45,15 @@ router.get("/test", async (req, res, next) => {
         })
     }
 })
-router.post("/api/v1/send-signin-otp", sendSigninOtp)
-router.post("/api/v1/signin", signin)
-router.get("/api/v1/get-user-data", verifyUser, getUserData)
-router.post("/api/v1/edit-profile", verifyUser, editProfile)
-router.post("/api/v1/add-saved-place", verifyUser, addSavedPlace)
-router.post("/api/v1/edit-saved-place", verifyUser, editSavedPlace)
-router.get("/api/v1/get-saved-place", verifyUser, getSavedPlace)
-router.get("/api/v1/get-saved-places", verifyUser, getSavedPlaces)
-router.post("/api/v1/send-phone-number-change-otp", verifyUser, sendPhoneNumberChangeOtp)
-router.post("/api/v1/change-phone-number", verifyUser, changePhoneNumber)
+router.post("/v1/send-signin-otp", sendSigninOtp)
+router.post("/v1/signin", signin)
+router.get("/v1/get-user-data", verifyUser, getUserData)
+router.post("/v1/edit-profile", verifyUser, editProfile)
+router.post("/v1/add-saved-place", verifyUser, addSavedPlace)
+router.post("/v1/edit-saved-place", verifyUser, editSavedPlace)
+router.get("/v1/get-saved-place", verifyUser, getSavedPlace)
+router.get("/v1/get-saved-places", verifyUser, getSavedPlaces)
+router.post("/v1/send-phone-number-change-otp", verifyUser, sendPhoneNumberChangeOtp)
+router.post("/v1/change-phone-number", verifyUser, changePhoneNumber)
 
 module.exports = router
