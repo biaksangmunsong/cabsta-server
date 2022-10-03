@@ -6,7 +6,6 @@ const bcrypt = require("bcryptjs")
 module.exports = async (req, res, next) => {
 
     try {
-        const userId = req.userId
         const newPhoneNumber = phone(req.body.newPhoneNumber || "", {country: "IN"})
 
         // check if new phone number is valid
@@ -26,24 +25,13 @@ module.exports = async (req, res, next) => {
             return next({
                 status: 409,
                 data: {
-                    message: "An user with the same phone number already exists"
-                }
-            })
-        }
-        
-        // get current phone number
-        const user = await User.findOne({_id: userId})
-        if (!user){
-            return next({
-                status: 404,
-                data: {
-                    message:"User not found"
+                    message: "An user with the same phone number already exists, if this is your phone number, consider signing in instead."
                 }
             })
         }
 
         // prevent code to be sent more than once in 10 seconds
-        const otpDocs = await Otp.find({phoneNumber: user.phoneNumber})
+        const otpDocs = await Otp.find({phoneNumber: newPhoneNumber.phoneNumber})
         if (otpDocs.length > 0){
             if (otpDocs.length >= 3){
                 return next({
@@ -75,7 +63,7 @@ module.exports = async (req, res, next) => {
             }
         }
 
-        // send otp to user's current phone number
+        // send otp to new phone number
         const otpId = `${Math.floor(Math.random()*10)}-${Date.now()}`
         const otp = "1234"
         const salt = await bcrypt.genSalt(10)
@@ -84,11 +72,8 @@ module.exports = async (req, res, next) => {
             id: otpId,
             for: "phone-number-change",
             otp: hashedOtp,
-            phoneNumber: user.phoneNumber,
-            countryCode: user.countryCode,
-            data: {
-                newPhoneNumber: newPhoneNumber.phoneNumber
-            }
+            phoneNumber: newPhoneNumber.phoneNumber,
+            countryCode: newPhoneNumber.countryCode
         })
         await newOtp.save()
 

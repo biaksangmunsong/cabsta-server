@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
         const otpDoc = otpDocRaw.toJSON()
         
         // validate new phone number
-        const newPhoneNumber = phone(otpDoc.data.newPhoneNumber || "", {country: "IN"})
+        const newPhoneNumber = phone(otpDoc.phoneNumber || "", {country: "IN"})
         if (!newPhoneNumber.isValid){
             return next({
                 status: 406,
@@ -40,7 +40,7 @@ module.exports = async (req, res, next) => {
             return next({
                 status: 409,
                 data: {
-                    message: `Phone number has already been registered`
+                    message: `An user with the same phone number already exists, if this is your phone number, consider signing in instead.`
                 }
             })
         }
@@ -81,16 +81,32 @@ module.exports = async (req, res, next) => {
             phoneNumber: user.phoneNumber,
             iat: now
         }, process.env.JWT_SECRET)
-        
-        // send response
-        res
-        .status(200)
-        .set("Cache-Control", "no-store")
-        .json({
-            phoneNumber: newPhoneNumber.phoneNumber,
-            countryCode: newPhoneNumber.countryCode,
-            authToken
-        })
+
+        try {
+            // delete otp doc
+            await otpDocRaw.delete()
+            
+            // send response
+            res
+            .status(200)
+            .set("Cache-Control", "no-store")
+            .json({
+                phoneNumber: newPhoneNumber.phoneNumber,
+                countryCode: newPhoneNumber.countryCode,
+                authToken
+            })
+        }
+        catch {
+            // send response anyway
+            res
+            .status(200)
+            .set("Cache-Control", "no-store")
+            .json({
+                phoneNumber: newPhoneNumber.phoneNumber,
+                countryCode: newPhoneNumber.countryCode,
+                authToken
+            })
+        }
     }
     catch (err){
         console.log(err)

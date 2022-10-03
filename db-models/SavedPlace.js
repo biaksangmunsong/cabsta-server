@@ -10,7 +10,7 @@ const SavedPlaceSchema = new Schema({
         type: "String",
         required: true
     },
-    formattedAddress: {
+    address: {
         type: "String",
         required: true
     },

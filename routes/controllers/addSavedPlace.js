@@ -6,7 +6,7 @@ module.exports = async (req, res, next) => {
     try {
         const userId = req.userId
         const title = String(req.body.title || "")
-        const formattedAddress = String(req.body.formattedAddress || "")
+        const address = String(req.body.address || "")
         const coords = req.body.coords
 
         // validate input
@@ -26,7 +26,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (!formattedAddress){
+        if (!address){
             return next({
                 status: 406,
                 data: {
@@ -34,7 +34,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (formattedAddress.length > 500){
+        if (address.length > 500){
             return next({
                 status: 406,
                 data: {
@@ -65,7 +65,7 @@ module.exports = async (req, res, next) => {
             _id: new mongoose.Types.ObjectId().toHexString(),
             user: userId,
             title,
-            formattedAddress,
+            address,
             location: {
                 type: "Point",
                 coordinates: [coords.lng,coords.lat]
@@ -84,7 +84,7 @@ module.exports = async (req, res, next) => {
             _id: newPlace._id,
             user: newPlace.user,
             title: newPlace.title,
-            formattedAddress: newPlace.formattedAddress,
+            address: newPlace.address,
             location: newPlace.location,
             lastModified: newPlace.lastModified,
             createdAt: newPlace.createdAt
