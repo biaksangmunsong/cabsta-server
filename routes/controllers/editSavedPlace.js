@@ -1,3 +1,4 @@
+const ObjectId = require('mongoose').Types.ObjectId
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
@@ -15,6 +16,14 @@ module.exports = async (req, res, next) => {
                 status: 406,
                 data: {
                     message: "Please specify a place to edit"
+                }
+            })
+        }
+        if (!ObjectId.isValid(placeId)){
+            return next({
+                status: 406,
+                data: {
+                    message: "Invalid Request"
                 }
             })
         }

@@ -12,7 +12,7 @@ module.exports = async (req, res, next) => {
             lastModified: {
                 $lt: lastPlace
             }
-        }).sort({lastModified: -1}).limit(4)
+        }).sort({lastModified: -1}).limit(50)
         
         // build response data
         const responseData = []

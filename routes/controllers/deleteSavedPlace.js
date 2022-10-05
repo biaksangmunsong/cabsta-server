@@ -2,16 +2,17 @@ const ObjectId = require('mongoose').Types.ObjectId
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
-    
+
     try {
         const userId = req.userId
-        const placeId = String(req.query.placeId || "")
+        const placeId = String(req.body.placeId || "")
         
+        // validate input
         if (!placeId){
             return next({
                 status: 406,
                 data: {
-                    message: "Please specify a place to get"
+                    message: "Please specify a place to delete"
                 }
             })
         }
@@ -23,40 +24,18 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-
-        // get place from database
-        let place = await SavedPlace.findOne({
+        
+        // find and delete place form database
+        await SavedPlace.findOneAndDelete({
             _id: placeId,
             user: userId
         })
-
-        if (!place){
-            return next({
-                status: 404,
-                data: {
-                    message: "Place not found"
-                }
-            })
-        }
-        
-        place = place.toJSON()
         
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
-        .json({
-            _id: place._id,
-            user: place.user,
-            title: place.title,
-            address: place.address,
-            coords: {
-                lat: place.location.coordinates[1],
-                lng: place.location.coordinates[0]
-            },
-            lastModified: place.lastModified,
-            createdAt: place.createdAt
-        })
+        .json({_id: placeId})
     }
     catch (err){
         console.log(err)
@@ -67,5 +46,5 @@ module.exports = async (req, res, next) => {
             }
         })
     }
-    
+
 }
