@@ -1,7 +1,7 @@
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
         const userId = req.userId
         const placeId = String(req.query.placeId || "")
@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
         }
 
         // get place from database
-        const place = await SavedPlace.findOne({
+        let place = await SavedPlace.findOne({
             _id: placeId,
             user: userId
         })
@@ -29,6 +29,8 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
+        
+        place = place.toJSON()
         
         // send response
         res

@@ -6,9 +6,9 @@ module.exports = async (req, res, next) => {
         const userId = req.userId
         const placeId = String(req.body.placeId || "")
         const title = String(req.body.title || "")
-        const formattedAddress = String(req.body.formattedAddress || "")
+        const address = String(req.body.address || "")
         const coords = req.body.coords
-
+        
         // validate input
         if (!placeId){
             return next({
@@ -26,7 +26,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (title.length > 200){
+        if (title.length > 100){
             return next({
                 status: 406,
                 data: {
@@ -34,7 +34,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (!formattedAddress){
+        if (!address){
             return next({
                 status: 406,
                 data: {
@@ -42,7 +42,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (formattedAddress.length > 500){
+        if (address.length > 500){
             return next({
                 status: 406,
                 data: {
@@ -83,7 +83,7 @@ module.exports = async (req, res, next) => {
 
         // update
         place.title = title
-        place.formattedAddress = formattedAddress
+        place.address = address
         place.location = {
             type: "Point",
             coordinates: [coords.lng,coords.lat]
@@ -100,7 +100,7 @@ module.exports = async (req, res, next) => {
             _id: place._id,
             user: place.user,
             title: place.title,
-            formattedAddress: place.formattedAddress,
+            address: place.address,
             location: place.location,
             lastModified: place.lastModified,
             createdAt: place.createdAt
