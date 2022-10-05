@@ -1,18 +1,18 @@
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
         const userId = req.userId
         const lastPlace = Number(req.query.lastPlace) || Date.now()
-
+        
         // get places from database
         const places = await SavedPlace.find({
             user: userId,
             lastModified: {
                 $lt: lastPlace
             }
-        }).sort({lastModified: -1}).limit(5)
+        }).sort({lastModified: -1}).limit(4)
         
         // build response data
         const responseData = []
@@ -22,7 +22,7 @@ module.exports = async (req, res, next) => {
                 _id: place._id,
                 user: place.user,
                 title: place.title,
-                formattedAddress: place.formattedAddress,
+                address: place.address,
                 coords: {
                     lat: place.location.coordinates[1],
                     lng: place.location.coordinates[0]
@@ -31,7 +31,7 @@ module.exports = async (req, res, next) => {
                 createdAt: place.createdAt
             })
         }
-        
+
         // send response
         res
         .status(200)

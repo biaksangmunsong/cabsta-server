@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
         const userId = req.userId
         const title = String(req.body.title || "")
