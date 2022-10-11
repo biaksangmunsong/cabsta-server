@@ -77,7 +77,7 @@ module.exports = async (req, res, next) => {
         }
 
         // check if place document with placeId exist in database
-        const place = await SavedPlace.findOne({
+        let place = await SavedPlace.findOne({
             _id: placeId,
             user: userId
         })
@@ -111,8 +111,8 @@ module.exports = async (req, res, next) => {
             title: place.title,
             address: place.address,
             coords: {
-                lat: place.location.coordinates[1],
-                lng: place.location.coordinates[0]
+                lat: place.toJSON().location.coordinates[1],
+                lng: place.toJSON().location.coordinates[0]
             },
             lastModified: place.lastModified,
             createdAt: place.createdAt

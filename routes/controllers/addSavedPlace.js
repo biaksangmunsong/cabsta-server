@@ -86,8 +86,8 @@ module.exports = async (req, res, next) => {
             title: newPlace.title,
             address: newPlace.address,
             coords: {
-                lat: newPlace.location.coordinates[1],
-                lng: newPlace.location.coordinates[0]
+                lat: newPlace.toJSON().location.coordinates[1],
+                lng: newPlace.toJSON().location.coordinates[0]
             },
             lastModified: newPlace.lastModified,
             createdAt: newPlace.createdAt
