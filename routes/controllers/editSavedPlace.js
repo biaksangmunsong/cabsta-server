@@ -110,7 +110,10 @@ module.exports = async (req, res, next) => {
             user: place.user,
             title: place.title,
             address: place.address,
-            location: place.location,
+            coords: {
+                lat: place.location.coordinates[1],
+                lng: place.location.coordinates[0]
+            },
             lastModified: place.lastModified,
             createdAt: place.createdAt
         })
