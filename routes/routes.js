@@ -12,6 +12,7 @@ const getSavedPlace = require("./controllers/getSavedPlace")
 const getSavedPlaces = require("./controllers/getSavedPlaces")
 const sendPhoneNumberChangeOtp = require("./controllers/sendPhoneNumberChangeOtp")
 const changePhoneNumber = require("./controllers/changePhoneNumber")
+const getVehicleSelectorPageData = require("./controllers/getVehicleSelectorPageData")
 
 const SavedPlace = require("../db-models/SavedPlace")
 
@@ -57,5 +58,7 @@ router.get("/v1/get-saved-place", verifyUser, getSavedPlace)
 router.get("/v1/get-saved-places", verifyUser, getSavedPlaces)
 router.post("/v1/send-phone-number-change-otp", verifyUser, sendPhoneNumberChangeOtp)
 router.post("/v1/change-phone-number", verifyUser, changePhoneNumber)
+router.post("/v1/change-phone-number", verifyUser, changePhoneNumber)
+router.get("/v1/get-vehicle-selector-page-data", verifyUser, getVehicleSelectorPageData)
 
 module.exports = router
