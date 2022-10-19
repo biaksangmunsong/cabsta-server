@@ -14,10 +14,56 @@ const sendPhoneNumberChangeOtp = require("./controllers/sendPhoneNumberChangeOtp
 const changePhoneNumber = require("./controllers/changePhoneNumber")
 const getVehicleSelectorPageData = require("./controllers/getVehicleSelectorPageData")
 
-const SavedPlace = require("../db-models/SavedPlace")
+// const SavedPlace = require("../db-models/SavedPlace")
+const ActiveDriver = require("../db-models/ActiveDriver")
 
 router.get("/", async (req, res, next) => {
     res.send("Hello from Cabsta Api")
+})
+router.get("/add-active-driver", async (req, res, next) => {
+    try {
+        const newActiveDriver = new ActiveDriver({
+            userId: "63362e8c69adcf1811e61105",
+            userData: {
+                name: "Biaksang Munsong",
+                age: 22,
+                gender: "Male"
+            },
+            location: {
+                type: "Point",
+                coordinates: [93.695020,24.340019]
+            },
+            lastUpdated: new Date
+        })
+        await newActiveDriver.save()
+
+        res.send("done")
+    }
+    catch (err){
+        console.log(err)
+        next({
+            data: {
+                message: "Internal server error"
+            }
+        })
+    }
+})
+router.get("/update-active-driver", async (req, res, next) => {
+    try {
+        await ActiveDriver.updateOne({_id: req.query._id}, {
+            lastUpdated: new Date
+        })
+        
+        res.send("done")
+    }
+    catch (err){
+        console.log(err)
+        next({
+            data: {
+                message: "Internal server error"
+            }
+        })
+    }
 })
 router.get("/test", async (req, res, next) => {
     try {

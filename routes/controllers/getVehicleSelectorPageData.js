@@ -1,4 +1,5 @@
 const axios = require("axios")
+const calculatePrice = require("../../lib/calculatePrice")
 
 module.exports = async (req, res, next) => {
     
@@ -37,14 +38,31 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
+        if (
+            !distanceMatrixData.data.rows ||
+            !distanceMatrixData.data.rows[0] ||
+            !distanceMatrixData.data.rows[0].elements[0]
+        ){
+            return next({
+                status: 400,
+                data: {
+                    message: "Something went wrong, please try again."
+                }
+            })
+        }
+        
+        const price = calculatePrice(distanceMatrixData.data.rows[0].elements[0].distance.value)
+        const distance = distanceMatrixData.data.rows[0].elements[0].distance
+        const duration = distanceMatrixData.data.rows[0].elements[0].duration
         
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
         .json({
-            distanceMatrix: distanceMatrixData.data,
-            pricing: JSON.parse(process.env.PRICING),
+            price,
+            distance,
+            duration,
             note: "Distance and Estimated Time may not always be accurate due to traffic jams or other complications."
         })
     }
