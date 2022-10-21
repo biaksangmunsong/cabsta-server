@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 })
 
 // handle routes
-app.use("/", routes)
+app.use("/v1", routes)
 
 // handle errors
 app.use((err, req, res, next) => {

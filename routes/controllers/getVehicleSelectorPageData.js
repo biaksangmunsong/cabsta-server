@@ -51,7 +51,8 @@ module.exports = async (req, res, next) => {
             })
         }
         
-        const price = calculatePrice(distanceMatrixData.data.rows[0].elements[0].distance.value)
+        const pricing = JSON.parse(process.env.PRICING)
+        const price = calculatePrice(distanceMatrixData.data.rows[0].elements[0].distance.value, pricing.basePrice, pricing.perKmPrice)
         const distance = distanceMatrixData.data.rows[0].elements[0].distance
         const duration = distanceMatrixData.data.rows[0].elements[0].duration
         
