@@ -11,7 +11,9 @@ module.exports = (req, res, next) => {
         console.log(err)
         next({
             status: 500,
-            message: "Internal Server Error"
+            data: {
+                message: "Internal Server Error"
+            }
         })
     }
 
