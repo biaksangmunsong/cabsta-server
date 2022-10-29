@@ -23,7 +23,7 @@ const OtpSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        expires: 60,
+        expires: 300,
         default: new Date
     }
 })

@@ -1,16 +1,16 @@
 const mongoose = require("mongoose")
 const Schema = mongoose.Schema
 
-const ActiveDriverSchema = new Schema({
-    driverId: {
+const RideRequestSchema = new Schema({
+    driver: {
         type: String,
         required: true
     },
-    driverData: {
-        type: Map,
+    passenger: {
+        type: String,
         required: true
     },
-    location: {
+    details: {
         type: Map,
         required: true
     },
@@ -18,14 +18,15 @@ const ActiveDriverSchema = new Schema({
         type: Number,
         default: Date.now
     },
-    createdAt: {
-        type: Number,
-        default: Date.now
+    iat: {
+        type: Date,
+        expires: 300,
+        default: new Date
     }
 })
 
 mongoose.models = {}
 
-const ActiveDriver = mongoose.model("active-drivers", ActiveDriverSchema)
+const RideRequest = mongoose.model("ride-requests", RideRequestSchema)
 
-module.exports = ActiveDriver
+module.exports = RideRequest

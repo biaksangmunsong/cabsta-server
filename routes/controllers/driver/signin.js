@@ -1,16 +1,20 @@
+const jwt = require("jsonwebtoken")
+
 module.exports = async (req, res, next) => {
-    
+
     try {
-        const rideDetails = req.rideDetails
-        
+        // generate jwt
+        const authToken = jwt.sign({
+            driverId: "6353b3bbc839bbb30e5b1c99",
+            phoneNumber: "+917085259566",
+            iat: Date.now()
+        }, process.env.DRIVER_JWT_SECRET)
+
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
-        .json({
-            ...rideDetails,
-            note: "Distance and Estimated Time may not always be accurate due to traffic jams or other complications."
-        })
+        .json({authToken})
     }
     catch (err){
         console.log(err)

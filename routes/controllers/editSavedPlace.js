@@ -1,4 +1,4 @@
-const ObjectId = require('mongoose').Types.ObjectId
+const mongoose = require("mongoose")
 const SavedPlace = require("../../db-models/SavedPlace")
 
 module.exports = async (req, res, next) => {
@@ -19,7 +19,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        if (!ObjectId.isValid(placeId)){
+        if (!mongoose.Types.ObjectId.isValid(placeId)){
             return next({
                 status: 406,
                 data: {

@@ -1,7 +1,12 @@
 const express = require("express")
 const app = express()
+const http = require("http")
+const server = http.createServer(app)
+const io = require("socket.io")(server, {cors: {origin: "*"}})
 const routes = require("./routes/routes")
+const handleSocketConnection = require("./socket-handlers/handleConnection")
 const mongoose = require("mongoose")
+const { initializeApp, cert } = require("firebase-admin/app")
 const cloudinary = require("cloudinary").v2
 require("dotenv").config()
 
@@ -39,9 +44,10 @@ mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true
 }).then(() => {
     // initialize firebase
-    // initializeApp({
-    //     credential: cert(serviceAccount)
-    // })
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    initializeApp({
+        credential: cert(serviceAccount)
+    })
     
     //configure cloudinary
     cloudinary.config({
@@ -52,7 +58,11 @@ mongoose.connect(process.env.MONGODB_URL, {
     })
     
     // listen to port
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server running at port ${PORT}...`)
+        
+        io.on("connection", socket => handleSocketConnection(io, socket))
     })
+}).catch(err => {
+    console.log(err)
 })
