@@ -29,7 +29,7 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-
+        
         // check if document already exists
         const existingDoc = await ActiveDriver.findOne({driverId})
         if (existingDoc){

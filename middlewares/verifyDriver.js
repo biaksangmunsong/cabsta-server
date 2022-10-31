@@ -35,15 +35,17 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        req.driverId = data.driverId
+        
+        const driverData = driver.toJSON()
+        req.driverId = driverData._id
         req.driverData = {
-            phoneNumber: data.phoneNumber,
-            countryCode: data.countryCode,
-            name: data.name,
-            dob: data.dob,
-            gender: data.gender,
-            vehicleType: data.vehicleType,
-            vehicle: data.vehicle
+            phoneNumber: driverData.phoneNumber,
+            countryCode: driverData.countryCode,
+            name: driverData.name,
+            dob: driverData.dob,
+            gender: driverData.gender,
+            vehicleType: driverData.vehicleType,
+            vehicle: driverData.vehicle
         }
         next()
     }
