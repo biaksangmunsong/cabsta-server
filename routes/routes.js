@@ -22,6 +22,8 @@ const requestARide = require("./controllers/requestARide")
 
 const driverSignin = require("./controllers/driver/signin")
 const getOnline = require("./controllers/driver/getOnline")
+const getOffline = require("./controllers/driver/getOffline")
+const checkOnline = require("./controllers/driver/checkOnline")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
@@ -163,5 +165,7 @@ router.post("/request-a-ride", verifyUser, withRideDetails, requestARide)
 
 router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)
+router.delete("/driver/get-offline", verifyDriver, getOffline)
+router.get("/driver/check-online", verifyDriver, checkOnline)
 
 module.exports = router
