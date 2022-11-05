@@ -1,10 +1,7 @@
-const mongoose = require("mongoose")
-const ActiveDriver = require("../../../db-models/ActiveDriver")
-
-module.exports = async (_id, coords) => {
+module.exports = async (coords, driverId, redisClient) => {
     
     try {
-        if (!mongoose.Types.ObjectId.isValid(_id) || typeof(coords) !== "object") return
+        if (typeof(coords) !== "object") return
         
         const lat = Number(coords.lat) || NaN
         const lng = Number(coords.lng) || NaN
@@ -22,17 +19,15 @@ module.exports = async (_id, coords) => {
                 lng > 180
             )
         ) return
-
+        
         // update location
-        await ActiveDriver.findOneAndUpdate({_id}, {
-            location: {
-                type: "Point",
-                coordinates: [lng,lat]
-            },
-            lastUpdated: Date.now()
-        }, {
-            upsert: false
-        })
+        await redisClient.sendCommand([
+            "GEOADD",
+            "active_drivers_location",
+            String(lng),
+            String(lat),
+            driverId
+        ])
     }
     catch {}
 

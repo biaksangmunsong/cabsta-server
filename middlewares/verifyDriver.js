@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken")
 const Driver = require("../db-models/Driver")
 
 module.exports = async (req, res, next) => {
-
+    
     if (!req.headers.authorization){
         return next({
             status: 403,
@@ -16,8 +16,35 @@ module.exports = async (req, res, next) => {
     
     // verify token
     try {
+        const redisClient = req.redisClient
         const data = jwt.verify(token, process.env.DRIVER_JWT_SECRET)
-        const driver = await Driver.findOne({_id: data.driverId})
+
+        let driver = null
+
+        // try to get driver data from redis
+        driver = await redisClient.sendCommand([
+            "GET",
+            `drivers:${data.driverId}`
+        ])
+
+        if (driver){
+            // if driver data is in redis use that data
+            driver = JSON.parse(driver)
+        }
+        else {
+            // if driver data is not in redis, get it from database
+            driver = await Driver.findOne({_id: data.driverId})
+            if (driver){
+                // if driver is found in database, add it to redis
+                await redisClient.sendCommand([
+                    "SETEX",
+                    `drivers:${data.driverId}`,
+                    "60",
+                    JSON.stringify(driver.toJSON())
+                ])
+            }
+        }
+
         if (!driver || !driver.jwtValidFrom || !data.iat){
             return next({
                 status: 403,
@@ -36,16 +63,15 @@ module.exports = async (req, res, next) => {
             })
         }
         
-        const driverData = driver.toJSON()
-        req.driverId = driverData._id
+        req.driverId = data.driverId
         req.driverData = {
-            phoneNumber: driverData.phoneNumber,
-            countryCode: driverData.countryCode,
-            name: driverData.name,
-            dob: driverData.dob,
-            gender: driverData.gender,
-            vehicleType: driverData.vehicleType,
-            vehicle: driverData.vehicle
+            phoneNumber: driver.phoneNumber,
+            countryCode: driver.countryCode,
+            name: driver.name,
+            dob: driver.dob,
+            gender: driver.gender,
+            vehicleType: driver.vehicleType,
+            vehicle: driver.vehicle
         }
         next()
     }

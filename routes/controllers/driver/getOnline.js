@@ -2,8 +2,9 @@ const mongoose = require("mongoose")
 const ActiveDriver = require("../../../db-models/ActiveDriver")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
+        const redisClient = req.redisClient
         const driverId = req.driverId
         const driverData = req.driverData
         const lat = Number(req.body.lat) || NaN
@@ -30,41 +31,34 @@ module.exports = async (req, res, next) => {
             })
         }
         
-        // check if document already exists
-        const existingDoc = await ActiveDriver.findOne({driverId})
-        if (existingDoc){
-            existingDoc.location = {
-                type: "Point",
-                coordinates: [lng,lat]
-            }
-            existingDoc.lastUpdated = Date.now()
-            await existingDoc.save()
-
-            // send response
-            res
-            .status(200)
-            .set("Cache-Control", "no-store")
-            .json({_id: existingDoc._id})
+        const setLocation = async () => {
+            await redisClient.sendCommand([
+                "GEOADD",
+                "active_drivers_location",
+                String(lng),
+                String(lat),
+                driverId
+            ])
+            
+            return driverId
         }
-        else {
-            const _id = new mongoose.Types.ObjectId()
-            const newActiveDriver = new ActiveDriver({
-                _id,
-                driverId,
-                driverData,
-                location: {
-                    type: "Point",
-                    coordinates: [lng,lat]
-                }
-            })
-            await newActiveDriver.save()
-
-            // send response
-            res
-            .status(200)
-            .set("Cache-Control", "no-store")
-            .json({_id})
+        const setDriverData = async () => {
+            await redisClient.sendCommand([
+                "SET",
+                `active_drivers:${driverId}`,
+                JSON.stringify(driverData)
+            ])
+            
+            return driverId
         }
+
+        await Promise.all([setLocation(), setDriverData()])
+
+        // send response
+        res
+        .status(200)
+        .set("Cache-Control", "no-store")
+        .send("OK")
     }
     catch (err){
         console.log(err)

@@ -145,6 +145,133 @@ router.get("/send-test-notification", async (req, res, next) => {
         })
     }
 })
+router.get("/test-redis", async (req, res, next) => {
+    try {
+        redisClient = req.redisClient
+        // await redisClient.geoAdd("active_drivers", {
+        //     longitude: 93.6967933,
+        //     latitude: 24.339645,
+        //     member: "driver1"
+        // })
+
+
+        const results = await redisClient.sendCommand([
+            "GEOSEARCH",
+            "active_drivers_location",
+            "FROMLONLAT",
+            "93.690117",
+            "24.313994",
+            "BYRADIUS",
+            "20",
+            "km",
+            "WITHDIST",
+            "ASC",
+            "COUNT",
+            "10"
+        ])
+        console.log(results)
+        return res.json(results)
+
+
+        // await redisClient.sendCommand([
+        //     "GEOADD",
+        //     "active_drivers",
+        //     "93.699744",
+        //     "24.345665",
+        //     "driver3"
+        // ])
+
+        // const setDriver = async id => {
+        //     await redisClient.sendCommand([
+        //         "SETEX",
+        //         `active_drivers:data:${id}`,
+        //         "10",
+        //         JSON.stringify({
+        //             name: "Name",
+        //             age: 22,
+        //             gender: "male",
+        //             vehicleType: "two-wheeler"
+        //         })
+        //     ])
+
+        //     return id
+        // }
+
+        const setLocation = async id => {
+            await redisClient.geoAdd("active_drivers_location", {
+                longitude: 93.6967933,
+                latitude: 24.339645,
+                member: id
+            })
+
+            return id
+        }
+
+        const ids = ["driver1", "driver2", "driver3", "driver4", "driver5", "driver6", "driver7", "driver8", "driver9", "driver10", "driver11", "driver12", "driver13", "driver14", "driver15"]
+        await Promise.all(ids.map(id => setLocation(id)))
+
+        // await redisClient.sendCommand([
+        //     "SETEX",
+        //     "active_drivers:data:driver1",
+        //     "10",
+        //     JSON.stringify({
+        //         name: "Name",
+        //         age: 22,
+        //         gender: "male",
+        //         vehicleType: "two-wheeler"
+        //     })
+        // ])
+        // await redisClient.sendCommand([
+        //     "SETEX",
+        //     "active_drivers:data:driver2",
+        //     "10",
+        //     JSON.stringify({
+        //         name: "Name",
+        //         age: 22,
+        //         gender: "male",
+        //         vehicleType: "two-wheeler"
+        //     })
+        // ])
+        // await redisClient.sendCommand([
+        //     "SETEX",
+        //     "active_drivers:data:driver3",
+        //     "10",
+        //     JSON.stringify({
+        //         name: "Name",
+        //         age: 22,
+        //         gender: "male",
+        //         vehicleType: "two-wheeler"
+        //     })
+        // ])
+        // await redisClient.sendCommand([
+        //     "SETEX",
+        //     "active_drivers:data:driver4",
+        //     "10",
+        //     JSON.stringify({
+        //         name: "Name",
+        //         age: 22,
+        //         gender: "male",
+        //         vehicleType: "two-wheeler"
+        //     })
+        // ])
+        
+
+
+
+
+        res.send("ok")
+        // const value = await redisClient.get("hello")
+        // res.send(value || "null")
+    }
+    catch (err){
+        console.log(err.message)
+        next({
+            data: {
+                message: "Internal server error"
+            }
+        })
+    }
+})
 
 
 router.post("/send-signin-otp", sendSigninOtp)

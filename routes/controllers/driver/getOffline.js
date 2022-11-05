@@ -1,12 +1,27 @@
-const ActiveDriver = require("../../../db-models/ActiveDriver")
-
 module.exports = async (req, res, next) => {
-
+    
     try {
+        const redisClient = req.redisClient
         const driverId = req.driverId
         
-        await ActiveDriver.deleteMany({driverId})
+        const deleteDriverData = async () => {
+            await redisClient.sendCommand([
+                "DEL",
+                `active_drivers:${driverId}`
+            ])
 
+            return driverId
+        }
+        const deleteLocation = async () => {
+            await redisClient.sendCommand([
+                "ZREM",
+                "active_drivers_location",
+                driverId
+            ])
+        }
+
+        await Promise.all([deleteDriverData(), deleteLocation()])
+        
         // send response
         res
         .status(200)

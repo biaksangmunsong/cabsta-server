@@ -8,9 +8,17 @@ const handleSocketConnection = require("./socket-handlers/handleConnection")
 const mongoose = require("mongoose")
 const { initializeApp, cert } = require("firebase-admin/app")
 const cloudinary = require("cloudinary").v2
+const { createClient } = require("redis")
 require("dotenv").config()
 
 const PORT = process.env.PORT || 8080
+
+const redisClient = createClient()
+
+// handle redis error
+redisClient.on("error", err => {
+    console.log(`Redis Error: ${err.message}`)
+})
 
 // apply middlewares
 app.use(express.json({limit: "50mb"}))
@@ -23,7 +31,10 @@ app.use((req, res, next) => {
 })
 
 // handle routes
-app.use("/v1", routes)
+app.use("/v1", (req, res, next) => {
+    req.redisClient = redisClient
+    routes(req, res, next)
+})
 
 // handle errors
 app.use((err, req, res, next) => {
@@ -42,7 +53,7 @@ app.use((err, req, res, next) => {
 mongoose.connect(process.env.MONGODB_URL, {
     useUnifiedTopology: true,
     useNewUrlParser: true
-}).then(() => {
+}).then(async () => {
     // initialize firebase
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
     initializeApp({
@@ -56,12 +67,15 @@ mongoose.connect(process.env.MONGODB_URL, {
 		api_secret: process.env.CLOUDINARY_API_SECRET,
         secure: true
     })
-    
+
+    // init redis
+    await redisClient.connect()
+
     // listen to port
     server.listen(PORT, () => {
         console.log(`Server running at port ${PORT}...`)
         
-        io.on("connection", socket => handleSocketConnection(io, socket))
+        io.on("connection", socket => handleSocketConnection(io, socket, redisClient))
     })
 }).catch(err => {
     console.log(err)
