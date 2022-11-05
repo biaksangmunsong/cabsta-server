@@ -102,7 +102,6 @@ router.get("/test", async (req, res, next) => {
         console.log(Date.now()-start)
         res
         .status(200)
-        .set("Cache-Control", "no-store")
         .send(String(users.length))
     }
     catch (err){
