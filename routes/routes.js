@@ -27,6 +27,7 @@ const checkOnline = require("./controllers/driver/checkOnline")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
+const User = require("../db-models/User")
 const { getMessaging } = require("firebase-admin/messaging")
 
 router.get("/", async (req, res, next) => {
@@ -84,23 +85,25 @@ router.get("/update-active-driver", async (req, res, next) => {
     }
 })
 router.get("/test", async (req, res, next) => {
+    
     try {
-        const places = await SavedPlace.find({
-            location: {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [
-                            93.670855, // longitude
-                            24.333492 // latitude
-                        ]
-                    },
-                    $minDistance: 10,
-                    $maxDistance: 3000
-                }
+        let start = Date.now()
+        const users = await User.find({
+            _id: {
+                $in: [
+                    "6332129b0d01b6f8b929bbfc",
+                    "633213770d01b6f8b929bc17",
+                    "63362e8c69adcf1811e61105",
+                    "6365f62d6d6736c0d65b64ff",
+                    "6365f6436d6736c0d65b650d"
+                ]
             }
-        }).limit(2)
-        res.json(places)
+        })
+        console.log(Date.now()-start)
+        res
+        .status(200)
+        .set("Cache-Control", "no-store")
+        .send(String(users.length))
     }
     catch (err){
         console.log(err)
@@ -110,6 +113,35 @@ router.get("/test", async (req, res, next) => {
             }
         })
     }
+
+
+
+    // try {
+    //     const places = await SavedPlace.find({
+    //         location: {
+    //             $near: {
+    //                 $geometry: {
+    //                     type: "Point",
+    //                     coordinates: [
+    //                         93.670855, // longitude
+    //                         24.333492 // latitude
+    //                     ]
+    //                 },
+    //                 $minDistance: 10,
+    //                 $maxDistance: 3000
+    //             }
+    //         }
+    //     }).limit(2)
+    //     res.json(places)
+    // }
+    // catch (err){
+    //     console.log(err)
+    //     next({
+    //         data: {
+    //             message: "Internal server error"
+    //         }
+    //     })
+    // }
 })
 router.get("/send-test-notification", async (req, res, next) => {
     try {
