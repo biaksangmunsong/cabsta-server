@@ -24,6 +24,7 @@ module.exports = async (coords, driverId, redisClient) => {
         await redisClient.sendCommand([
             "GEOADD",
             "active_drivers_location",
+            "XX",
             String(lng),
             String(lat),
             driverId
