@@ -1,12 +1,8 @@
-const mongoose = require("mongoose")
-const ActiveDriver = require("../../../db-models/ActiveDriver")
-
 module.exports = async (req, res, next) => {
     
     try {
         const redisClient = req.redisClient
         const driverId = req.driverId
-        const driverData = req.driverData
         const lat = Number(req.body.lat) || NaN
         const lng = Number(req.body.lng) || NaN
 
@@ -31,29 +27,14 @@ module.exports = async (req, res, next) => {
             })
         }
         
-        const setLocation = async () => {
-            await redisClient.sendCommand([
-                "GEOADD",
-                "active_drivers_location",
-                String(lng),
-                String(lat),
-                driverId
-            ])
-            
-            return driverId
-        }
-        const setDriverData = async () => {
-            await redisClient.sendCommand([
-                "SET",
-                `active_drivers:${driverId}`,
-                JSON.stringify(driverData)
-            ])
-            
-            return driverId
-        }
-
-        await Promise.all([setLocation(), setDriverData()])
-
+        await redisClient.sendCommand([
+            "GEOADD",
+            "active_drivers",
+            String(lng),
+            String(lat),
+            driverId
+        ])
+        
         // send response
         res
         .status(200)

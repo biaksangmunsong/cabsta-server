@@ -4,23 +4,11 @@ module.exports = async (req, res, next) => {
         const redisClient = req.redisClient
         const driverId = req.driverId
         
-        const deleteDriverData = async () => {
-            await redisClient.sendCommand([
-                "DEL",
-                `active_drivers:${driverId}`
-            ])
-
-            return driverId
-        }
-        const deleteLocation = async () => {
-            await redisClient.sendCommand([
-                "ZREM",
-                "active_drivers_location",
-                driverId
-            ])
-        }
-
-        await Promise.all([deleteDriverData(), deleteLocation()])
+        await redisClient.sendCommand([
+            "ZREM",
+            "active_drivers",
+            driverId
+        ])
         
         // send response
         res
