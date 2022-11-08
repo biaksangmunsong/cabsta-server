@@ -1,3 +1,5 @@
+const Driver = require("../../../db-models/Driver")
+
 module.exports = async (req, res, next) => {
     
     try {
@@ -13,8 +15,8 @@ module.exports = async (req, res, next) => {
                 !lng
             ) ||
             (
-                lat < -90 ||
-                lat > 90 ||
+                lat < -85 ||
+                lat > 85 ||
                 lng < -180 ||
                 lng > 180
             )
@@ -26,10 +28,38 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
+
+        // get vehicle type
+        const driver = await Driver.findOne({_id: driverId})
+        if (!driver){
+            return next({
+                status: 404,
+                data: {
+                    message: "Driver not found"
+                }
+            })
+        }
+
+        let key = ""
+        if (driver.vehicleType === "two-wheeler"){
+            key = "active_two_wheeler_drivers"
+        }
+        if (driver.vehicleType === "four-wheeler"){
+            key = "active_four_wheeler_drivers"
+        }
+        
+        if (!key){
+            return next({
+                status: 400,
+                data: {
+                    message: "Unknown Error"
+                }
+            })
+        }
         
         await redisClient.sendCommand([
             "GEOADD",
-            "active_drivers",
+            key,
             String(lng),
             String(lat),
             driverId

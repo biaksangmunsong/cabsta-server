@@ -18,6 +18,7 @@ const sendPhoneNumberChangeOtp = require("./controllers/sendPhoneNumberChangeOtp
 const changePhoneNumber = require("./controllers/changePhoneNumber")
 const getVehicleSelectorPageData = require("./controllers/getVehicleSelectorPageData")
 const getPricingData = require("./controllers/getPricingData")
+const getActiveDrivers = require("./controllers/getActiveDrivers")
 const requestARide = require("./controllers/requestARide")
 
 const driverSignin = require("./controllers/driver/signin")
@@ -145,7 +146,7 @@ router.get("/test", async (req, res, next) => {
 router.get("/send-test-notification", async (req, res, next) => {
     try {
         const fcmMessage = {
-            token: "cC_lxdqJSWe9nrXmmwAI3R:APA91bFVvsKdB-_orInlEg3GHc4ehFEEyCR7SRJx7U2fEt163d2SKKA9iy-Q6giKliShlfYunibhk4tWvsNK5zuI_5sGZ8wV839kc2Hktq7G-rjcCMYv8dbG6tV9jJqeDAWZIZWXxYXs",
+            token: "c58I7zzXTy2977dntLxOqW:APA91bE1AlhVvHr1x2-PeGsAHA0vWbET01cVVfsI0tN0XZbjQnia3TL0XPJoF3yO_axeufMfTiz6oOEWOEUxc0F0ADrsg8WLOAQbDZjmoufbo8GA7epJVrlmOZaNiSts8_Kt7cZpfcgB",
             notification: {
                 title: "Ride Request",
                 body: "You've got a ride request, please renpond within 30 seconds."
@@ -329,6 +330,7 @@ router.post("/send-phone-number-change-otp", verifyUser, sendPhoneNumberChangeOt
 router.post("/change-phone-number", verifyUser, changePhoneNumber)
 router.post("/change-phone-number", verifyUser, changePhoneNumber)
 router.get("/get-vehicle-selector-page-data", verifyUser, withRideDetails, getVehicleSelectorPageData)
+router.get("/get-active-drivers", verifyUser, withRideDetails, getActiveDrivers)
 router.post("/request-a-ride", verifyUser, withRideDetails, requestARide)
 
 router.post("/driver/signin", driverSignin)

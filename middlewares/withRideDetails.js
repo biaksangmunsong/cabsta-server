@@ -11,12 +11,12 @@ module.exports = async (req, res, next) => {
 
         // validate pickupLocation and destination
         if (
-            pickupLocationLat < -90 ||
-            pickupLocationLat > 90 ||
+            pickupLocationLat < -85 ||
+            pickupLocationLat > 85 ||
             pickupLocationLng < -180 ||
             pickupLocationLng > 180 ||
-            destinationLat < -90 ||
-            destinationLat > 90 ||
+            destinationLat < -85 ||
+            destinationLat > 85 ||
             destinationLng < -180 ||
             destinationLng > 180
         ){
@@ -90,7 +90,15 @@ module.exports = async (req, res, next) => {
         req.rideDetails = {
             price,
             distance,
-            duration
+            duration,
+            pickupLocation: {
+                lat: pickupLocationLat,
+                lng: pickupLocationLng
+            },
+            destination: {
+                lat: destinationLat,
+                lng: destinationLng
+            }
         }
         next()
     }

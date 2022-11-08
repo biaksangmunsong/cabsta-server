@@ -14,6 +14,18 @@ const DriverSchema = new Schema({
     photo: {
         type: Map
     },
+    dob: {
+        type: Number
+    },
+    gender: {
+        type: String
+    },
+    vehicle: {
+        type: Map
+    },
+    vehicleType: {
+        type: String
+    },
     jwtValidFrom: {
         type: Number,
         default: Date.now
