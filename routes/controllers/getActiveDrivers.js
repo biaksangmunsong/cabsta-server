@@ -4,11 +4,20 @@ module.exports = async (req, res, next) => {
         const redisClient = req.redisClient
         const userId = req.userId
         const rideDetails = req.rideDetails
+        const vehicleType = String(req.query.vehicleType || "two-wheeler")
         
+        let key = ""
+        if (vehicleType === "two-wheeler"){
+            key = "active_two_wheeler_drivers"
+        }
+        if (vehicleType === "four-wheeler"){
+            key = "active_four_wheeler_drivers"
+        }
+
         // get active drivers
         const activeDrivers = await redisClient.sendCommand([
             "GEOSEARCH",
-            "active_drivers_location",
+            key,
             "FROMLONLAT",
             String(rideDetails.pickupLocation.lng),
             String(rideDetails.pickupLocation.lat),
