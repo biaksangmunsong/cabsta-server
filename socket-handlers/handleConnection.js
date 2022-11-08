@@ -15,34 +15,36 @@ module.exports = async (io, socket, redisClient) => {
             if (client === "driver"){
                 const tokenData = jwt.verify(authToken, process.env.DRIVER_JWT_SECRET)
 
-                let driver = null
-
-                // try to get driver data from redis
-                driver = await redisClient.sendCommand([
+                let jwtValidFrom = null
+                
+                // try to get data from redis
+                jwtValidFrom = await redisClient.sendCommand([
                     "GET",
-                    `drivers:${tokenData.driverId}`
+                    `drivers:jwt_valid_from:${tokenData.driverId}`
                 ])
 
-                if (driver){
-                    // if driver data is in redis use that data
-                    driver = JSON.parse(driver)
+                if (jwtValidFrom){
+                    // if data is in redis use that data
+                    jwtValidFrom = Number(jwtValidFrom)
                 }
                 else {
-                    // if driver data is not in redis, get it from database
-                    driver = await Driver.findOne({_id: tokenData.driverId})
+                    // if data is not in redis, get it from database
+                    const driver = await Driver.findOne({_id: tokenData.driverId})
                     if (driver){
-                        // if driver is found in database, add it to redis
+                        jwtValidFrom = driver.jwtValidFrom
+                        
+                        // if data is found in database, add it to redis
                         await redisClient.sendCommand([
                             "SETEX",
-                            `drivers:${tokenData.driverId}`,
+                            `drivers:jwt_valid_from:${tokenData.driverId}`,
                             "60",
-                            JSON.stringify(driver.toJSON())
+                            String(driver.jwtValidFrom)
                         ])
                     }
                 }
                 
-                if (driver && driver.jwtValidFrom && tokenData.iat){
-                    if (tokenData.iat >= driver.jwtValidFrom){
+                if (jwtValidFrom && tokenData.iat){
+                    if (tokenData.iat >= jwtValidFrom){
                         socket.on("update-driver-location-for-everyone", coords => {
                             updateDriverLocationForEveryone(coords, tokenData.driverId, redisClient)
                         })
