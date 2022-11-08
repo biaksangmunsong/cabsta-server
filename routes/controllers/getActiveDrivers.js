@@ -29,6 +29,7 @@ module.exports = async (req, res, next) => {
             "COUNT",
             "10"
         ])
+        console.log(activeDrivers)
         res.json(activeDrivers)
     }
     catch (err){

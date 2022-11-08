@@ -6,7 +6,12 @@ module.exports = async (req, res, next) => {
         
         await redisClient.sendCommand([
             "ZREM",
-            "active_drivers",
+            "active_two_wheeler_drivers",
+            driverId
+        ])
+        await redisClient.sendCommand([
+            "ZREM",
+            "active_four_wheeler_drivers",
             driverId
         ])
         
