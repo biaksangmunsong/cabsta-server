@@ -179,6 +179,16 @@ router.get("/send-test-notification", async (req, res, next) => {
 router.get("/test-redis", async (req, res, next) => {
     try {
         redisClient = req.redisClient
+
+
+        const list = await redisClient.sendCommand([
+            "KEYS",
+            "*otps:signn:+70*"
+        ])
+        console.log(list.length)
+
+
+
         // await redisClient.geoAdd("active_drivers", {
         //     longitude: 93.6967933,
         //     latitude: 24.339645,

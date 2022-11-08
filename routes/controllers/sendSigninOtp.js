@@ -1,10 +1,11 @@
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
-const Otp = require("../../db-models/Otp")
 
 module.exports = async (req, res, next) => {
 
     try {
+        const redisClient = req.redisClient
+        
         // check if phone number is valid
         const phoneNumber = phone(req.body.phoneNumber || "", {country: "IN"})
         if (!phoneNumber.isValid){
@@ -16,62 +17,53 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-
+        
         // prevent code to be sent more than once in 10 seconds
-        const otpDocs = await Otp.find({phoneNumber: phoneNumber.phoneNumber})
-        if (otpDocs.length > 0){
-            if (otpDocs.length >= 3){
+        let otpDoc = await redisClient.sendCommand([
+            "GET",
+            `otps:signin:${phoneNumber.phoneNumber}`
+        ])
+        if (otpDoc){
+            otpDoc = JSON.parse(otpDoc)
+            if (Date.now()-otpDoc.iat < 10000){
                 return next({
                     status: 400,
                     data: {
                         code: "otp-temporarily-not-allowed",
-                        message: "Cannot send otp to this phone number right now (reason: too many attempts), please try again later."
+                        message: "Otp already sent."
                     }
                 })
             }
-            else {
-                let cannotSendOtpForNow = false
-                for (let i = 0; i < otpDocs.length; i++){
-                    const otpDoc = otpDocs[i]
-                    if (otpDoc.for === "signin" && Date.now()-otpDoc.lastSent < 10000){
-                        cannotSendOtpForNow = true
-                        break
-                    }
-                }
-                if (cannotSendOtpForNow){
-                    return next({
-                        status: 400,
-                        data: {
-                            code: "otp-temporarily-not-allowed",
-                            message: "Otp already sent"
-                        }
-                    })
-                }
-            }
         }
-
+        
+        // create otp doc
+        const otp = "1234"
+        const salt = await bcrypt.genSalt(10)
+        const hashedOtp = await bcrypt.hash(otp, salt)
+        const newOtp = {
+            otp: hashedOtp,
+            phoneNumber: phoneNumber.phoneNumber,
+            countryCode: phoneNumber.countryCode,
+            iat: Date.now()
+        }
+        await redisClient.sendCommand([
+            "SETEX",
+            `otps:signin:${phoneNumber.phoneNumber}`,
+            "60",
+            JSON.stringify(newOtp)
+        ])
+        
         // send otp
         setTimeout(async () => {
             // simulate sending otp with timeout
-            // create otp doc
-            const otpId = `${Math.floor(Math.random()*10)}-${Date.now()}`
-            const otp = "1234"
-            const salt = await bcrypt.genSalt(10)
-            const hashedOtp = await bcrypt.hash(otp, salt)
-            const newOtp = new Otp({
-                id: otpId,
-                for: "signin",
-                otp: hashedOtp,
-                phoneNumber: phoneNumber.phoneNumber,
-                countryCode: phoneNumber.countryCode
-            })
-            await newOtp.save()
-            
             // send response
             res
             .status(200)
             .set("Cache-Control", "no-store")
-            .json({otpId})
+            .json({
+                phoneNumber: phoneNumber.phoneNumber,
+                countryCode: phoneNumber.countryCode
+            })
         }, 1500)
     }
     catch (err){

@@ -1,4 +1,3 @@
-const Otp = require("../../db-models/Otp")
 const User = require("../../db-models/User")
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
@@ -6,6 +5,7 @@ const bcrypt = require("bcryptjs")
 module.exports = async (req, res, next) => {
 
     try {
+        const redisClient = req.redisClient
         const newPhoneNumber = phone(req.body.newPhoneNumber || "", {country: "IN"})
 
         // check if new phone number is valid
@@ -31,57 +31,47 @@ module.exports = async (req, res, next) => {
         }
 
         // prevent code to be sent more than once in 10 seconds
-        const otpDocs = await Otp.find({phoneNumber: newPhoneNumber.phoneNumber})
-        if (otpDocs.length > 0){
-            if (otpDocs.length >= 3){
+        let otpDoc = await redisClient.sendCommand([
+            "GET",
+            `otps:phone_number_change:${newPhoneNumber.phoneNumber}`
+        ])
+        if (otpDoc){
+            otpDoc = JSON.parse(otpDoc)
+            if (Date.now()-otpDoc.iat < 10000){
                 return next({
                     status: 400,
                     data: {
                         code: "otp-temporarily-not-allowed",
-                        message: "Cannot send otp to your phone number right now (reason: too many attempts), please try again later."
+                        message: "Otp already sent."
                     }
                 })
-            }
-            else {
-                let cannotSendOtpForNow = false
-                for (let i = 0; i < otpDocs.length; i++){
-                    const otpDoc = otpDocs[i]
-                    if (otpDoc.for === "phone-number-change" && Date.now()-otpDoc.lastSent < 10000){
-                        cannotSendOtpForNow = true
-                        break
-                    }
-                }
-                if (cannotSendOtpForNow){
-                    return next({
-                        status: 400,
-                        data: {
-                            code: "otp-temporarily-not-allowed",
-                            message: "Otp already sent"
-                        }
-                    })
-                }
             }
         }
 
         // send otp to new phone number
-        const otpId = `${Math.floor(Math.random()*10)}-${Date.now()}`
         const otp = "1234"
         const salt = await bcrypt.genSalt(10)
         const hashedOtp = await bcrypt.hash(otp, salt)
-        const newOtp = new Otp({
-            id: otpId,
-            for: "phone-number-change",
+        const newOtp = {
             otp: hashedOtp,
             phoneNumber: newPhoneNumber.phoneNumber,
-            countryCode: newPhoneNumber.countryCode
-        })
-        await newOtp.save()
-
+            countryCode: newPhoneNumber.countryCode,
+            iat: Date.now()
+        }
+        await redisClient.sendCommand([
+            "SETEX",
+            `otps:phone_number_change:${newPhoneNumber.phoneNumber}`,
+            "60",
+            JSON.stringify(newOtp)
+        ])
+        
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
-        .json({otpId})
+        .json({
+            phoneNumber: newPhoneNumber.phoneNumber,
+        })
     }
     catch (err){
         console.log(err)

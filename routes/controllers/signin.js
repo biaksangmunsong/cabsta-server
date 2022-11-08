@@ -1,26 +1,41 @@
 const mongoose = require("mongoose")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
-const Otp = require("../../db-models/Otp")
+const { phone } = require("phone")
 const User = require("../../db-models/User")
 
 module.exports = async (req, res, next) => {
 
     try {
-        const otpId = String(req.body.otpId || "")
+        const redisClient = req.redisClient
         const otp = String(req.body.otp || "")
-        
-        // get otp doc from database
-        const otpDocRaw = await Otp.findOne({id: otpId})
-        if (!otpDocRaw || otpDocRaw.for !== "signin"){
+
+        // check if phone number is valid
+        const phoneNumber = phone(req.body.phoneNumber || "", {country: "IN"})
+        if (!phoneNumber.isValid){
             return next({
-                status: 403,
+                status: 406,
                 data: {
-                    message: "Otp invalid or expired"
+                    code: "invalid-phone-number",
+                    message: "Invalid phone number"
                 }
             })
         }
-        const otpDoc = otpDocRaw.toJSON()
+        
+        // get otp doc from redis
+        let otpDoc = await redisClient.sendCommand([
+            "GET",
+            `otps:signin:${phoneNumber.phoneNumber}`
+        ])
+        if (!otpDoc){
+            return next({
+                status: 403,
+                data: {
+                    message: "Otp expired"
+                }
+            })
+        }
+        otpDoc = JSON.parse(otpDoc)
         
         // validate otp
         const otpIsValid = await bcrypt.compare(otp, otpDoc.otp)
@@ -28,7 +43,7 @@ module.exports = async (req, res, next) => {
             return next({
                 status: 403,
                 data: {
-                    message: "Incorrect Otp"
+                    message: "Invalid Otp"
                 }
             })
         }
@@ -48,14 +63,25 @@ module.exports = async (req, res, next) => {
             
             // generate jwt
             const authToken = jwt.sign({
-                userId: newUser._id,
+                userId: String(newUser._id),
                 phoneNumber: otpDoc.phoneNumber,
                 iat: now
             }, process.env.JWT_SECRET)
             
             try {
-                // delete otp doc
-                await otpDocRaw.delete()
+                // delete otp doc from redis
+                await redisClient.sendCommand([
+                    "DEL",
+                    `otps:signin:${phoneNumber.phoneNumber}`
+                ])
+                
+                // save jwtValidFrom to redis
+                await redisClient.sendCommand([
+                    "SETEX",
+                    `users:jwt_valid_from:${String(newUser._id)}`,
+                    "604800",
+                    String(now)
+                ])
                 
                 // send response
                 res
@@ -82,15 +108,18 @@ module.exports = async (req, res, next) => {
         else {
             // generate jwt
             const authToken = jwt.sign({
-                userId: user._id,
+                userId: String(user._id),
                 phoneNumber: otpDoc.phoneNumber,
                 iat: now
             }, process.env.JWT_SECRET)
 
             try {
-                // delete otp doc
-                await otpDocRaw.delete()
-
+                // delete otp doc from redis
+                await redisClient.sendCommand([
+                    "DEL",
+                    `otps:signin:${phoneNumber.phoneNumber}`
+                ])
+                
                 // send response
                 res
                 .status(200)

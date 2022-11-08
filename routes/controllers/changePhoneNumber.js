@@ -1,5 +1,4 @@
 const User = require("../../db-models/User")
-const Otp = require("../../db-models/Otp")
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
@@ -7,35 +6,39 @@ const jwt = require("jsonwebtoken")
 module.exports = async (req, res, next) => {
 
     try {
+        const redisClient = req.redisClient
         const userId = req.userId
         const otp = String(req.body.otp || "")
-        const otpId = String(req.body.otpId || "")
 
-        // get otp doc from database
-        const otpDocRaw = await Otp.findOne({id: otpId})
-        if (!otpDocRaw || otpDocRaw.for !== "phone-number-change"){
-            return next({
-                status: 403,
-                data: {
-                    message: "Otp invalid or expired"
-                }
-            })
-        }
-        const otpDoc = otpDocRaw.toJSON()
-        
-        // validate new phone number
-        const newPhoneNumber = phone(otpDoc.phoneNumber || "", {country: "IN"})
-        if (!newPhoneNumber.isValid){
+        // check if phone number is valid
+        const phoneNumber = phone(req.body.phoneNumber || "", {country: "IN"})
+        if (!phoneNumber.isValid){
             return next({
                 status: 406,
                 data: {
+                    code: "invalid-phone-number",
                     message: "Invalid phone number"
                 }
             })
         }
-
+        
+        // get otp doc from redis
+        let otpDoc = await redisClient.sendCommand([
+            "GET",
+            `otps:phone_number_change:${phoneNumber.phoneNumber}`
+        ])
+        if (!otpDoc){
+            return next({
+                status: 403,
+                data: {
+                    message: "Otp expired"
+                }
+            })
+        }
+        otpDoc = JSON.parse(otpDoc)
+        
         // check if a user exist with the new phone number
-        const userWithSamePhoneNumber = await User.findOne({phoneNumber: newPhoneNumber.phoneNumber})
+        const userWithSamePhoneNumber = await User.findOne({phoneNumber: phoneNumber.phoneNumber})
         if (userWithSamePhoneNumber){
             return next({
                 status: 409,
@@ -69,30 +72,41 @@ module.exports = async (req, res, next) => {
 
         const now = Date.now()
 
-        user.phoneNumber = newPhoneNumber.phoneNumber
-        user.countryCode = newPhoneNumber.countryCode
+        user.phoneNumber = phoneNumber.phoneNumber
+        user.countryCode = phoneNumber.countryCode
         user.jwtValidFrom = now
 
         await user.save()
 
         // generate new jwt
         const authToken = jwt.sign({
-            userId: user._id,
+            userId: String(user._id),
             phoneNumber: user.phoneNumber,
             iat: now
         }, process.env.JWT_SECRET)
 
         try {
-            // delete otp doc
-            await otpDocRaw.delete()
+            // delete otp doc from redis
+            await redisClient.sendCommand([
+                "DEL",
+                `otps:phone_number_change:${phoneNumber.phoneNumber}`
+            ])
+
+            // save jwtValidFrom to redis
+            await redisClient.sendCommand([
+                "SETEX",
+                `users:jwt_valid_from:${String(user._id)}`,
+                "604800",
+                String(now)
+            ])
             
             // send response
             res
             .status(200)
             .set("Cache-Control", "no-store")
             .json({
-                phoneNumber: newPhoneNumber.phoneNumber,
-                countryCode: newPhoneNumber.countryCode,
+                phoneNumber: phoneNumber.phoneNumber,
+                countryCode: phoneNumber.countryCode,
                 authToken
             })
         }
@@ -102,8 +116,8 @@ module.exports = async (req, res, next) => {
             .status(200)
             .set("Cache-Control", "no-store")
             .json({
-                phoneNumber: newPhoneNumber.phoneNumber,
-                countryCode: newPhoneNumber.countryCode,
+                phoneNumber: phoneNumber.phoneNumber,
+                countryCode: phoneNumber.countryCode,
                 authToken
             })
         }

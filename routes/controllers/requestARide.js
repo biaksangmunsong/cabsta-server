@@ -1,5 +1,5 @@
 const ObjectId = require('mongoose').Types.ObjectId
-const RideRequest = require("../../db-models/RideRequest")
+// const RideRequest = require("../../db-models/RideRequest")
 
 module.exports = async (req, res, next) => {
 
