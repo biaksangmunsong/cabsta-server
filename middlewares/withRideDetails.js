@@ -79,8 +79,7 @@ module.exports = async (req, res, next) => {
             await redisClient.sendCommand([
                 "SETEX",
                 `distance_matrix_data:destination-${destinationLat},${destinationLng}_origin-${pickupLocationLat},${pickupLocationLng}`,
-                // "86400",
-                "60",
+                "86400",
                 JSON.stringify(res.data)
             ])
         }
