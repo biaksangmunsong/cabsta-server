@@ -4,6 +4,7 @@ const calculatePrice = require("../lib/calculatePrice")
 module.exports = async (req, res, next) => {
 
     try {
+        const redisClient = req.redisClient
         const pickupLocationLat = Number(req.query.pickupLocationLat) || NaN
         const pickupLocationLng = Number(req.query.pickupLocationLng) || NaN
         const destinationLat = Number(req.query.destinationLat) || NaN
@@ -48,34 +49,59 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        
-        const distanceMatrixData = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destinationLat},${destinationLng}&origins=${pickupLocationLat},${pickupLocationLng}&units=metric&key=${process.env.GOOGLE_MAPS_API_KEY}`)
-        
-        if (distanceMatrixData.status !== 200 || !distanceMatrixData.data){
-            return next({
-                status: 500,
-                data: {
-                    message: "Internal Server Error"
-                }
-            })
+
+        let distanceMatrixData = null
+        // look for distance matrix data on redis
+        const cacheDistanceMatrixData = await redisClient.sendCommand([
+            "GET",
+            `distance_matrix_data:destination-${destinationLat},${destinationLng}_origin-${pickupLocationLat},${pickupLocationLng}`
+        ])
+        if (cacheDistanceMatrixData){
+            // if distance matrix data is found in redis, use that
+            distanceMatrixData = JSON.parse(cacheDistanceMatrixData)
         }
+        else {
+            // if distance matrix data is not found in redis make a request to google maps
+            const res = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destinationLat},${destinationLng}&origins=${pickupLocationLat},${pickupLocationLng}&units=metric&key=${process.env.GOOGLE_MAPS_API_KEY}`)
+
+            if (res.status !== 200 || !res.data){
+                return next({
+                    status: 500,
+                    data: {
+                        message: "Internal Server Error"
+                    }
+                })
+            }
+            
+            distanceMatrixData = res.data
+
+            // save data to redis
+            await redisClient.sendCommand([
+                "SETEX",
+                `distance_matrix_data:destination-${destinationLat},${destinationLng}_origin-${pickupLocationLat},${pickupLocationLng}`,
+                // "86400",
+                "60",
+                JSON.stringify(res.data)
+            ])
+        }
+        
         if (
-            !distanceMatrixData.data.rows ||
-            !distanceMatrixData.data.rows[0] ||
-            !distanceMatrixData.data.rows[0].elements[0]
+            !distanceMatrixData.rows ||
+            !distanceMatrixData.rows[0] ||
+            !distanceMatrixData.rows[0].elements[0]
         ){
             return next({
                 status: 400,
                 data: {
-                    message: "Something went wrong, please try again."
+                    message: "Invalid input data"
                 }
             })
         }
         
         const pricing = JSON.parse(process.env.PRICING)
-        const price = calculatePrice(distanceMatrixData.data.rows[0].elements[0].distance.value, pricing.basePrice, pricing.perKmPrice)
-        const distance = distanceMatrixData.data.rows[0].elements[0].distance
-        const duration = distanceMatrixData.data.rows[0].elements[0].duration
+        const price = calculatePrice(distanceMatrixData.rows[0].elements[0].distance.value, pricing.basePrice, pricing.perKmPrice)
+        const distance = distanceMatrixData.rows[0].elements[0].distance
+        const duration = distanceMatrixData.rows[0].elements[0].duration
 
         // set minimun and maximum distance
         if (distance.value < 50){
