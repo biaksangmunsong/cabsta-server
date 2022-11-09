@@ -4,19 +4,26 @@ module.exports = async (req, res, next) => {
         const redisClient = req.redisClient
         const driverId = req.driverId
         
-        const activeDriver = await redisClient.sendCommand([
+        const activeTwoWheelerDriver = await redisClient.sendCommand([
             "GEOHASH",
-            "active_drivers",
+            "active_two_wheeler_drivers",
             driverId
         ])
+        const activeFourWheelerDriver = await redisClient.sendCommand([
+            "GEOHASH",
+            "active_four_wheeler_drivers",
+            driverId
+        ])
+        let active = false
+        if ((activeTwoWheelerDriver && activeTwoWheelerDriver[0]) || (activeFourWheelerDriver && activeFourWheelerDriver[0])){
+            active = true
+        }
         
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
-        .json({
-            active: (activeDriver && activeDriver[0]) ? true : false
-        })
+        .json({active})
     }
     catch (err){
         console.log(err)

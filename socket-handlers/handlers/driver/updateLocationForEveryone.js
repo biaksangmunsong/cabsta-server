@@ -29,6 +29,8 @@ module.exports = async (coords, driverId, redisClient) => {
             String(lat),
             driverId
         ])
+
+        console.log({lat,lng})
     }
     catch {}
 
