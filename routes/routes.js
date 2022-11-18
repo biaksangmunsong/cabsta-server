@@ -28,7 +28,6 @@ const checkOnline = require("./controllers/driver/checkOnline")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
-const User = require("../db-models/User")
 const { getMessaging } = require("firebase-admin/messaging")
 
 router.get("/", async (req, res, next) => {
@@ -39,11 +38,124 @@ router.get("/", async (req, res, next) => {
 router.get("/add-driver", async (req, res, next) => {
     try {
         const newDriver = new Driver({
-            phoneNumber: "+917085259566",
+            phoneNumber: "+917085259525",
             countryCode: "+91",
-            name: "Biaksang Munsong"
+            name: "Driver Twenty Four",
+            vehicle: {
+                model: "Mahindra Thar",
+                numberPlate: "MN060099"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 1037385000000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverOne = new Driver({
+            phoneNumber: "+917085259524",
+            countryCode: "+91",
+            name: "Driver Twenty Three",
+            vehicle: {
+                model: "Bolero",
+                numberPlate: "MN066834"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 1005849000000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverTwo = new Driver({
+            phoneNumber: "+917085259523",
+            countryCode: "+91",
+            name: "Driver Twenty Two",
+            vehicle: {
+                model: "Scorpio",
+                numberPlate: "MN030968"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 1005849000000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverThree = new Driver({
+            phoneNumber: "+917085259522",
+            countryCode: "+91",
+            name: "Driver Twenty One",
+            vehicle: {
+                model: "Bolero",
+                numberPlate: "MN033256"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 721852200000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverFour = new Driver({
+            phoneNumber: "+917085259521",
+            countryCode: "+91",
+            name: "Driver Twenty",
+            vehicle: {
+                model: "Celero",
+                numberPlate: "MN032345"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 658693800000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverFive = new Driver({
+            phoneNumber: "+917085259520",
+            countryCode: "+91",
+            name: "Driver Nineteen",
+            vehicle: {
+                model: "Maruti suzuki swift",
+                numberPlate: "MN036380"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 627157800000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
+        })
+        const newDriverSix = new Driver({
+            phoneNumber: "+917085259519",
+            countryCode: "+91",
+            name: "Driver Eighteen",
+            vehicle: {
+                model: "Mahindra Thar",
+                numberPlate: "MN068950"
+            },
+            vehicleType: "four-wheeler",
+            gender: "male",
+            dob: 1068921000000,
+            photo: {
+                url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg",
+                thumbnail_url: "https://res.cloudinary.com/biaksangmunsong/image/upload/v1610410038/pexels-sebastiaan-stam-1097456_l3w7in.jpg"
+            }
         })
         await newDriver.save()
+        await newDriverOne.save()
+        await newDriverTwo.save()
+        await newDriverThree.save()
+        await newDriverFour.save()
+        await newDriverFive.save()
+        await newDriverSix.save()
         res.send("done")
 
         // generate jwt
@@ -88,22 +200,30 @@ router.get("/update-active-driver", async (req, res, next) => {
 router.get("/test", async (req, res, next) => {
     
     try {
-        let start = Date.now()
-        const users = await User.find({
-            _id: {
-                $in: [
-                    "6332129b0d01b6f8b929bbfc",
-                    "633213770d01b6f8b929bc17",
-                    "63362e8c69adcf1811e61105",
-                    "6365f62d6d6736c0d65b64ff",
-                    "6365f6436d6736c0d65b650d"
-                ]
-            }
-        })
-        console.log(Date.now()-start)
+        // let start = Date.now()
+        // const drivers = await Driver.find({
+        //     _id: {
+        //         $in: [
+        //             "6353b3bbc839bbb30e5b1c99",
+        //             // "6353b3bbc839bbb30e5b1c00",
+        //             "6374adf8f89757bbe43cbae6"
+        //         ]
+        //     }
+        // })
+        // console.log(Date.now()-start)
+
+        const latlng = "24.336743, 93.685346"
+        await req.redisClient.sendCommand([
+            "GEOADD",
+            "active_four_wheeler_drivers",
+            String(latlng.split(", ")[1]),
+            String(latlng.split(", ")[0]),
+            "6374b75054a57dcd5fdb25b4"
+        ])
+
         res
         .status(200)
-        .send(String(users.length))
+        .send("DONE")
     }
     catch (err){
         console.log(err)
