@@ -1,5 +1,6 @@
 const User = require("../../db-models/User")
 const cloudinary = require("cloudinary").v2
+const validateName = require("../../lib/validateName")
 
 module.exports = async (req, res, next) => {
 
@@ -49,31 +50,16 @@ module.exports = async (req, res, next) => {
         }
         
         // check if name is valid
-        if (!name){
+        const nameCheck = validateName(name)
+        if (nameCheck.error){
             return next({
                 status: 406,
                 data: {
-                    message: "Name is required"
+                    message: nameCheck.error.message
                 }
             })
         }
-        else if (name.length < 4){
-            return next({
-                status: 406,
-                data: {
-                    message: "Name too short"
-                }
-            })
-        }
-        else if (name.length > 50){
-            return next({
-                status: 406,
-                data: {
-                    message: "Name too long"
-                }
-            })
-        }
-
+        
         // get user data from database
         const user = await User.findOne({_id: userId})
         if (!user){

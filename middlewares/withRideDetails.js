@@ -1,5 +1,6 @@
 const axios = require("axios")
 const calculatePrice = require("../lib/calculatePrice")
+const validateRideDetails = require("../lib/validateRideDetails")
 
 module.exports = async (req, res, next) => {
 
@@ -10,46 +11,14 @@ module.exports = async (req, res, next) => {
         const destinationLat = Number(req.query.destinationLat) || NaN
         const destinationLng = Number(req.query.destinationLng) || NaN
         
-        // validate pickupLocation and destination
-        if (
-            (
-                (!pickupLocationLat && pickupLocationLat !== 0) ||
-                (!pickupLocationLng && pickupLocationLng !== 0) ||
-                (!destinationLat && destinationLat !== 0) ||
-                (!destinationLng && destinationLng !== 0)
-            ) ||
-            (
-                pickupLocationLat < -85 ||
-                pickupLocationLat > 85 ||
-                pickupLocationLng < -180 ||
-                pickupLocationLng > 180 ||
-                destinationLat < -85 ||
-                destinationLat > 85 ||
-                destinationLng < -180 ||
-                destinationLng > 180
-            )
-        ){
+        const rideDetailsCheck = validateRideDetails(pickupLocationLat, pickupLocationLng, destinationLat, destinationLng)
+        if (rideDetailsCheck.status !== 200){
             return next({
-                status: 406,
-                data: {
-                    message: "Invalid input data"
-                }
+                status: rideDetailsCheck.status,
+                data: rideDetailsCheck.data
             })
         }
-
-        // make sure pickup location and destination are different
-        if (
-            pickupLocationLat === destinationLat &&
-            pickupLocationLng === destinationLng
-        ){
-            return next({
-                status: 406,
-                data: {
-                    message: "Pickup Location and Destination should not be the same."
-                }
-            })
-        }
-
+        
         let distanceMatrixData = null
         // look for distance matrix data on redis
         const cacheDistanceMatrixData = await redisClient.sendCommand([
@@ -126,11 +95,13 @@ module.exports = async (req, res, next) => {
             duration,
             pickupLocation: {
                 lat: pickupLocationLat,
-                lng: pickupLocationLng
+                lng: pickupLocationLng,
+                address: distanceMatrixData.origin_addresses[0]
             },
             destination: {
                 lat: destinationLat,
-                lng: destinationLng
+                lng: destinationLng,
+                address: distanceMatrixData.destination_addresses[0]
             }
         }
         next()

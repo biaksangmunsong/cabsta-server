@@ -1,6 +1,20 @@
 const Driver = require("../../db-models/Driver")
 const getAge = require("../../lib/getAge")
 
+const checkRideRequest = async (activeDriver, redisClient) => {
+    const rideRequestExists = await redisClient.sendCommand([
+        "EXISTS",
+        `ride_request:${activeDriver[0]}`
+    ])
+    
+    if (rideRequestExists){
+        return null
+    }
+    else {
+        return activeDriver
+    }
+}
+
 module.exports = async (req, res, next) => {
     
     try {
@@ -17,25 +31,29 @@ module.exports = async (req, res, next) => {
         }
 
         // get active drivers
-        const activeDrivers = await redisClient.sendCommand([
+        let activeDrivers = await redisClient.sendCommand([
             "GEOSEARCH",
             key,
             "FROMLONLAT",
             String(rideDetails.pickupLocation.lng),
             String(rideDetails.pickupLocation.lat),
             "BYRADIUS",
-            "2000",
+            "3000",
             "m",
             "WITHDIST",
             "ASC",
             "COUNT",
-            "10"
+            "100"
         ])
         
         const responseData = {
             radius: 3,
             drivers: []
         }
+
+        // remove drivers from list if they are requested
+        const activeDriversCheckList = await Promise.all(activeDrivers.map(ad => checkRideRequest(ad, redisClient)))
+        activeDrivers = activeDriversCheckList.filter(ad => ad ? true : false)
         
         if (activeDrivers.length){
             // get driver data
@@ -56,8 +74,6 @@ module.exports = async (req, res, next) => {
                             name: data.name,
                             photo: data.photo,
                             gender: data.gender,
-                            phoneNumber: data.phoneNumber,
-                            countryCode: data.countryCode,
                             age: getAge(data.dob),
                             vehicle: data.vehicle.model,
                             distance: driver[1]

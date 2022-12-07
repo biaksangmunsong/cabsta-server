@@ -25,6 +25,8 @@ const driverSignin = require("./controllers/driver/signin")
 const getOnline = require("./controllers/driver/getOnline")
 const getOffline = require("./controllers/driver/getOffline")
 const checkOnline = require("./controllers/driver/checkOnline")
+const setFcmToken = require("./controllers/driver/setFcmToken")
+const getRideRequestDetails = require("./controllers/driver/getRideRequestDetails")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
@@ -457,5 +459,7 @@ router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)
 router.delete("/driver/get-offline", verifyDriver, getOffline)
 router.get("/driver/check-online", verifyDriver, checkOnline)
+router.post("/driver/set-fcm-token", verifyDriver, setFcmToken)
+router.get("/driver/get-ride-request-details", verifyDriver, getRideRequestDetails)
 
 module.exports = router

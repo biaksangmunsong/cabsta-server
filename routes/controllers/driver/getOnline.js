@@ -4,6 +4,7 @@ module.exports = async (req, res, next) => {
     
     try {
         const redisClient = req.redisClient
+        const socketIo = req.socketIo
         const driverId = req.driverId
         const lat = Number(req.body.lat) || NaN
         const lng = Number(req.body.lng) || NaN
@@ -64,6 +65,9 @@ module.exports = async (req, res, next) => {
             String(lat),
             driverId
         ])
+        
+        // send to everyone that driver is available
+        socketIo.emit("driver-available", driverId)
         
         // send response
         res

@@ -33,6 +33,7 @@ app.use((req, res, next) => {
 // handle routes
 app.use("/v1", (req, res, next) => {
     req.redisClient = redisClient
+    req.socketIo = io
     routes(req, res, next)
 })
 

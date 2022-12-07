@@ -3,6 +3,7 @@ module.exports = async (req, res, next) => {
     try {
         const redisClient = req.redisClient
         const driverId = req.driverId
+        const socketIo = req.socketIo
         
         await redisClient.sendCommand([
             "ZREM",
@@ -14,6 +15,9 @@ module.exports = async (req, res, next) => {
             "active_four_wheeler_drivers",
             driverId
         ])
+
+        // send to everyone that driver is unavailable
+        socketIo.emit("driver-unavailable", driverId)
         
         // send response
         res
