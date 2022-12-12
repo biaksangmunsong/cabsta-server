@@ -1,7 +1,7 @@
 const checkDriverActive = require("../../../lib/checkDriverActive")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
         const redisClient = req.redisClient
         const driverId = req.driverId
@@ -12,7 +12,7 @@ module.exports = async (req, res, next) => {
             return next({
                 status: 400,
                 data: {
-                    code: "no-longer-active",
+                    code: "driver-offline",
                     message: "Your are offline"
                 }
             })
@@ -35,7 +35,10 @@ module.exports = async (req, res, next) => {
             .set("Cache-Control", "no-store")
             .json({
                 data: null,
-                timeout: Number(process.env.RIDE_REQUEST_TIMEOUT),
+                ttl: {
+                    value: ttl,
+                    start: Number(process.env.RIDE_REQUEST_TIMEOUT)
+                },
                 serverMillis: Date.now()
             })
         }
@@ -57,8 +60,10 @@ module.exports = async (req, res, next) => {
             .set("Cache-Control", "no-store")
             .json({
                 data,
-                ttl: ttl,
-                timeout: Number(process.env.RIDE_REQUEST_TIMEOUT),
+                ttl: {
+                    value: ttl,
+                    start: Number(process.env.RIDE_REQUEST_TIMEOUT)
+                },
                 serverMillis: Date.now()
             })
         }

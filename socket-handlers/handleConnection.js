@@ -2,7 +2,9 @@ const jwt = require("jsonwebtoken")
 const User = require("../db-models/User")
 const Driver = require("../db-models/Driver")
 const abortARideRequest = require("./handlers/abortARideRequest")
+const syncRequestTimeout = require("./handlers/driver/syncRequestTimeout")
 const updateDriverLocationForEveryone = require("./handlers/driver/updateLocationForEveryone")
+const rejectRideRequest = require("./handlers/driver/rejectRideRequest")
 
 module.exports = async (io, socket, redisClient) => {
 
@@ -52,6 +54,15 @@ module.exports = async (io, socket, redisClient) => {
                         socket.on("update-driver-location-for-everyone", coords => {
                             updateDriverLocationForEveryone(coords, tokenData.driverId, redisClient)
                         })
+                        socket.on("broadcast-driver-unresponsive", () => {
+                            socket.broadcast.emit("driver-available", tokenData.driverId)
+                        })
+                        socket.on("reject-ride-request", () => {
+                            rejectRideRequest(io, tokenData.driverId, redisClient)
+                        })
+                        socket.on("sync-request-timeout", () => {
+                            syncRequestTimeout(io, tokenData.driverId, redisClient)
+                        })
                     }
                 }
             }
@@ -91,7 +102,7 @@ module.exports = async (io, socket, redisClient) => {
                         socket.join(tokenData.userId)
                         
                         socket.on("abort-a-ride-request", driverId => {
-                            abortARideRequest(driverId, redisClient, socket)
+                            abortARideRequest(driverId, redisClient, socket, io)
                         })
                         socket.on("broadcast-driver-unresponsive", driverId => {
                             socket.broadcast.emit("driver-available", driverId)
