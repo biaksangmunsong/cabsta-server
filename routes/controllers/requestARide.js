@@ -145,36 +145,6 @@ module.exports = async (req, res, next) => {
                 countryCode: driverDetails.countryCode
             }
         }
-        
-        // send notification to driver
-        const driverFcmToken = await redisClient.sendCommand([
-            "GET",
-            `driver_fcm_token:${driverId}`
-        ])
-        if (driverFcmToken){
-            const fcmMessage = {
-                token: driverFcmToken,
-                notification: {
-                    title: "Ride Request",
-                    body: `You've got a ride request, please respond within ${process.env.RIDE_REQUEST_TIMEOUT} seconds.\n\nPickup Address: ${rideRequestDetails.pickupLocation.address}\n\nDistance: ${rideRequestDetails.distance.text}`
-                },
-                data: {
-                    for: "ride-request",
-                    usersPhoto: rideRequestDetails.user.photo ? rideRequestDetails.user.photo.thumbnail_url : "",
-                    serverMillis: String(Date.now())
-                },
-                android: {
-                    ttl: Number(process.env.RIDE_REQUEST_TIMEOUT)*1000, // non-negative duration in milliseconds
-                    priority: "high",
-                    notification: {
-                        sound: "telephone_ring.mp3",
-                        channel_id: "ride-request",
-                        tag: "ride-request"
-                    }
-                }
-            }
-            await getMessaging().send(fcmMessage)
-        }
 
         // create request and write to redis
         await redisClient.sendCommand([
@@ -183,18 +153,53 @@ module.exports = async (req, res, next) => {
             process.env.RIDE_REQUEST_TIMEOUT,
             JSON.stringify(rideRequestDetails)
         ])
+        const now = Date.now()
         
         // send to everyone that driver is unavailable
         socketIo.emit("driver-unavailable", driverId)
         
+        // send notification to driver
+        const driverFcmToken = await redisClient.sendCommand([
+            "GET",
+            `driver_fcm_token:${driverId}`
+        ])
+        if (driverFcmToken){
+            try {
+                const fcmMessage = {
+                    token: driverFcmToken,
+                    notification: {
+                        title: "Ride Request",
+                        body: `You've got a ride request, please respond within ${process.env.RIDE_REQUEST_TIMEOUT} seconds.\n\nPickup Address: ${rideRequestDetails.pickupLocation.address}\n\nDistance: ${rideRequestDetails.distance.text}`
+                    },
+                    data: {
+                        for: "ride-request",
+                        usersPhoto: rideRequestDetails.user.photo ? rideRequestDetails.user.photo.thumbnail_url : "",
+                        serverMillis: String(now)
+                    },
+                    android: {
+                        ttl: Number(process.env.RIDE_REQUEST_TIMEOUT)*1000, // non-negative duration in milliseconds
+                        priority: "high",
+                        notification: {
+                            sound: "telephone_ring.mp3",
+                            channel_id: "ride-request",
+                            tag: "ride-request"
+                        }
+                    }
+                }
+                await getMessaging().send(fcmMessage)
+            }
+            catch {}
+        }
+        
         // send response
+        const secondsPassed = Math.round((Date.now()-now)/1000)
         res
         .status(200)
         .set("Cache-Control", "no-store")
         .json({
             driverId,
             ttl: {
-                value: Number(process.env.RIDE_REQUEST_TIMEOUT),
+                value: Number(process.env.RIDE_REQUEST_TIMEOUT)-secondsPassed,
                 start: Number(process.env.RIDE_REQUEST_TIMEOUT)
             }
         })
