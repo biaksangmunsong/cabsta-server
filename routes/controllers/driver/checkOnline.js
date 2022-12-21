@@ -6,13 +6,13 @@ module.exports = async (req, res, next) => {
         const redisClient = req.redisClient
         const driverId = req.driverId
 
-        const active = await checkDriverActive(driverId, redisClient)
+        const check = await checkDriverActive(driverId, redisClient)
         
         // send response
         res
         .status(200)
         .set("Cache-Control", "no-store")
-        .json(active)
+        .json(check)
     }
     catch (err){
         console.log(err)

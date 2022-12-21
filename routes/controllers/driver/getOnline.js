@@ -1,4 +1,5 @@
 const Driver = require("../../../db-models/Driver")
+const Ride = require("../../../db-models/Ride")
 
 module.exports = async (req, res, next) => {
     
@@ -30,6 +31,19 @@ module.exports = async (req, res, next) => {
             })
         }
 
+        // check if driver has any uncompleted rides
+        const uncompletedRide = await Ride.findOne({driverId})
+        
+        if (uncompletedRide){
+            return next({
+                status: 405,
+                data: {
+                    uncompletedRide: uncompletedRide._id,
+                    message: "You cannot get online while you have uncompleted rides."
+                }
+            })
+        }
+        
         // get vehicle type
         const driver = await Driver.findOne({_id: driverId})
         if (!driver){
@@ -41,22 +55,7 @@ module.exports = async (req, res, next) => {
             })
         }
 
-        let key = ""
-        if (driver.vehicleType === "two-wheeler"){
-            key = "active_two_wheeler_drivers"
-        }
-        if (driver.vehicleType === "four-wheeler"){
-            key = "active_four_wheeler_drivers"
-        }
-        
-        if (!key){
-            return next({
-                status: 400,
-                data: {
-                    message: "Unknown Error"
-                }
-            })
-        }
+        const key = `active_${driver.vehicleType}_drivers`
         
         await redisClient.sendCommand([
             "GEOADD",

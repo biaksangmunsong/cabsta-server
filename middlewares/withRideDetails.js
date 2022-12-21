@@ -10,6 +10,8 @@ module.exports = async (req, res, next) => {
         const pickupLocationLng = Number(req.query.pickupLocationLng) || NaN
         const destinationLat = Number(req.query.destinationLat) || NaN
         const destinationLng = Number(req.query.destinationLng) || NaN
+        const pickupLocationAddress = String(req.query.pickupLocationAddress || "")
+        const destinationAddress = String(req.query.destinationAddress || "")
         
         const rideDetailsCheck = validateRideDetails(pickupLocationLat, pickupLocationLng, destinationLat, destinationLng)
         if (rideDetailsCheck.status !== 200){
@@ -96,12 +98,12 @@ module.exports = async (req, res, next) => {
             pickupLocation: {
                 lat: pickupLocationLat,
                 lng: pickupLocationLng,
-                address: distanceMatrixData.origin_addresses[0]
+                address: pickupLocationAddress || distanceMatrixData.origin_addresses[0]
             },
             destination: {
                 lat: destinationLat,
                 lng: destinationLng,
-                address: distanceMatrixData.destination_addresses[0]
+                address: destinationAddress || distanceMatrixData.destination_addresses[0]
             }
         }
         next()

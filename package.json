@@ -19,6 +19,7 @@
     "firebase-admin": "^11.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.4",
+    "ngeohash": "^0.6.3",
     "phone": "^3.1.27",
     "redis": "^4.4.0",
     "socket.io": "^4.5.3"

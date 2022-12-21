@@ -1,3 +1,5 @@
+const getDriverOffline = require("../../../lib/getDriverOffline")
+
 module.exports = async (req, res, next) => {
     
     try {
@@ -5,17 +7,8 @@ module.exports = async (req, res, next) => {
         const driverId = req.driverId
         const socketIo = req.socketIo
         
-        await redisClient.sendCommand([
-            "ZREM",
-            "active_two_wheeler_drivers",
-            driverId
-        ])
-        await redisClient.sendCommand([
-            "ZREM",
-            "active_four_wheeler_drivers",
-            driverId
-        ])
-
+        await getDriverOffline(driverId, redisClient)
+        
         // send to everyone that driver is unavailable
         socketIo.emit("driver-unavailable", driverId)
         

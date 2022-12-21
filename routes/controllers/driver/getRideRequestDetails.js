@@ -7,8 +7,8 @@ module.exports = async (req, res, next) => {
         const driverId = req.driverId
         
         // check if driver is active
-        const active = await checkDriverActive(driverId, redisClient)
-        if (!active.active){
+        const driverActiveCheck = await checkDriverActive(driverId, redisClient)
+        if (!driverActiveCheck.coords){
             return next({
                 status: 400,
                 data: {

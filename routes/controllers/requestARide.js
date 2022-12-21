@@ -1,6 +1,7 @@
 const ObjectId = require('mongoose').Types.ObjectId
 const User = require("../../db-models/User")
 const Driver = require("../../db-models/Driver")
+const Ride = require("../../db-models/Ride")
 const { phone } = require("phone")
 const getAge = require("../../lib/getAge")
 const { getMessaging } = require("firebase-admin/messaging")
@@ -47,7 +48,7 @@ module.exports = async (req, res, next) => {
         }
         
         const driverId = String(req.body.driverId || "")
-        const vehicleType = String(req.body.vehicleType || "two-wheeler")
+        const vehicleType = String(req.body.vehicleType || "two_wheeler")
 
         // validate driverId
         if (!ObjectId.isValid(driverId)){
@@ -73,28 +74,23 @@ module.exports = async (req, res, next) => {
                 }
             })
         }
-        let driverAvailable = true
-        if (vehicleType === "two-wheeler"){
-            const activeDriver = await redisClient.sendCommand([
-                "GEOHASH",
-                "active_two_wheeler_drivers",
-                driverId
-            ])
-            if (!activeDriver || !activeDriver[0]){
-                driverAvailable = false
-            }
+        const activeDriver = await redisClient.sendCommand([
+            "GEOHASH",
+            `active_${vehicleType}_drivers`,
+            driverId
+        ])
+        if (!activeDriver || !activeDriver[0]){
+            return next({
+                status: 409,
+                data: {
+                    message: "Driver no longer available"
+                }
+            })
         }
-        else if (vehicleType === "four-wheeler"){
-            const activeDriver = await redisClient.sendCommand([
-                "GEOHASH",
-                "active_four_wheeler_drivers",
-                driverId
-            ])
-            if (!activeDriver || !activeDriver[0]){
-                driverAvailable = false
-            }
-        }
-        if (!driverAvailable){
+
+        // check if driver has any uncompleted rides
+        const uncompletedRide = await Ride.findOne({driverId})
+        if (uncompletedRide){
             return next({
                 status: 409,
                 data: {
@@ -126,7 +122,9 @@ module.exports = async (req, res, next) => {
         
         const rideRequestDetails = {
             ...rideDetails,
-            iat: Date.now(),
+            price: rideDetails.price[vehicleType],
+            vehicleType,
+            requestIat: Date.now(),
             user: {
                 _id: userDetails._id,
                 name: usersName,

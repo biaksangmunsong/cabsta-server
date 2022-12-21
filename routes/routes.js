@@ -20,6 +20,7 @@ const getVehicleSelectorPageData = require("./controllers/getVehicleSelectorPage
 const getPricingData = require("./controllers/getPricingData")
 const getActiveDrivers = require("./controllers/getActiveDrivers")
 const requestARide = require("./controllers/requestARide")
+const getRideDetails = require("./controllers/getRideDetails")
 
 const driverSignin = require("./controllers/driver/signin")
 const getOnline = require("./controllers/driver/getOnline")
@@ -27,11 +28,12 @@ const getOffline = require("./controllers/driver/getOffline")
 const checkOnline = require("./controllers/driver/checkOnline")
 const setFcmToken = require("./controllers/driver/setFcmToken")
 const getRideRequestDetails = require("./controllers/driver/getRideRequestDetails")
+const acceptRideRequest = require("./controllers/driver/acceptRideRequest")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
 const { getMessaging } = require("firebase-admin/messaging")
-
+ 
 router.get("/", async (req, res, next) => {
     res.send("Hello from Cabsta Api")
 })
@@ -47,7 +49,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Mahindra Thar",
                 numberPlate: "MN060099"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 1037385000000,
             photo: {
@@ -63,7 +65,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Bolero",
                 numberPlate: "MN066834"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 1005849000000,
             photo: {
@@ -79,7 +81,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Scorpio",
                 numberPlate: "MN030968"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 1005849000000,
             photo: {
@@ -95,7 +97,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Bolero",
                 numberPlate: "MN033256"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 721852200000,
             photo: {
@@ -111,7 +113,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Celero",
                 numberPlate: "MN032345"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 658693800000,
             photo: {
@@ -127,7 +129,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Maruti suzuki swift",
                 numberPlate: "MN036380"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 627157800000,
             photo: {
@@ -143,7 +145,7 @@ router.get("/add-driver", async (req, res, next) => {
                 model: "Mahindra Thar",
                 numberPlate: "MN068950"
             },
-            vehicleType: "four-wheeler",
+            vehicleType: "four_wheeler",
             gender: "male",
             dob: 1068921000000,
             photo: {
@@ -214,14 +216,14 @@ router.get("/test", async (req, res, next) => {
         // })
         // console.log(Date.now()-start)
 
-        const latlng = "24.336743, 93.685346"
-        await req.redisClient.sendCommand([
-            "GEOADD",
-            "active_four_wheeler_drivers",
-            String(latlng.split(", ")[1]),
-            String(latlng.split(", ")[0]),
-            "6374b75054a57dcd5fdb25b4"
-        ])
+        // const latlng = "24.336743, 93.685346"
+        // await req.redisClient.sendCommand([
+        //     "GEOADD",
+        //     "active_four_wheeler_drivers",
+        //     String(latlng.split(", ")[1]),
+        //     String(latlng.split(", ")[0]),
+        //     "6374b75054a57dcd5fdb25b4"
+        // ])
 
         res
         .status(200)
@@ -454,6 +456,7 @@ router.post("/change-phone-number", verifyUser, changePhoneNumber)
 router.get("/get-vehicle-selector-page-data", verifyUser, withRideDetails, getVehicleSelectorPageData)
 router.get("/get-active-drivers", verifyUser, withRideDetails, getActiveDrivers)
 router.post("/request-a-ride", verifyUser, withRideDetails, requestARide)
+router.get("/get-ride-details", verifyUser, getRideDetails)
 
 router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)
@@ -461,5 +464,6 @@ router.delete("/driver/get-offline", verifyDriver, getOffline)
 router.get("/driver/check-online", verifyDriver, checkOnline)
 router.post("/driver/set-fcm-token", verifyDriver, setFcmToken)
 router.get("/driver/get-ride-request-details", verifyDriver, getRideRequestDetails)
+router.get("/driver/accept-ride-request", verifyDriver, acceptRideRequest)
 
 module.exports = router

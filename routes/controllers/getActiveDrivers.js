@@ -20,15 +20,9 @@ module.exports = async (req, res, next) => {
     try {
         const redisClient = req.redisClient
         const rideDetails = req.rideDetails
-        const vehicleType = String(req.query.vehicleType || "two-wheeler")
+        const vehicleType = String(req.query.vehicleType || "two_wheeler")
         
-        let key = ""
-        if (vehicleType === "two-wheeler"){
-            key = "active_two_wheeler_drivers"
-        }
-        if (vehicleType === "four-wheeler"){
-            key = "active_four_wheeler_drivers"
-        }
+        const key = `active_${vehicleType}_drivers`
 
         // get active drivers
         let activeDrivers = await redisClient.sendCommand([

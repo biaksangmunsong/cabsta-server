@@ -24,7 +24,7 @@ module.exports = async (io, driverId, redisClient) => {
 
         // check if driver is still active and if so, let everyone know
         const driverActive = await checkDriverActive(driverId, redisClient)
-        if (driverActive.active){
+        if (driverActive.coords){
             io.emit("driver-available", driverId)
         }
     }
