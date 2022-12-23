@@ -23,6 +23,8 @@ const requestARide = require("./controllers/requestARide")
 const getRideDetails = require("./controllers/getRideDetails")
 
 const driverSignin = require("./controllers/driver/signin")
+const updateLocationForEveryone = require("./controllers/driver/updateLocationForEveryone")
+const updateLocationForRide = require("./controllers/driver/updateLocationForRide")
 const getOnline = require("./controllers/driver/getOnline")
 const getOffline = require("./controllers/driver/getOffline")
 const checkOnline = require("./controllers/driver/checkOnline")
@@ -224,6 +226,9 @@ router.get("/test", async (req, res, next) => {
         //     String(latlng.split(", ")[0]),
         //     "6374b75054a57dcd5fdb25b4"
         // ])
+
+        const now = new Date()
+        console.log(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`)
 
         res
         .status(200)
@@ -460,6 +465,8 @@ router.get("/get-ride-details", verifyUser, getRideDetails)
 
 router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)
+router.post("/driver/update-location-for-everyone", verifyDriver, updateLocationForEveryone)
+router.post("/driver/update-location-for-ride", verifyDriver, updateLocationForRide)
 router.delete("/driver/get-offline", verifyDriver, getOffline)
 router.get("/driver/check-online", verifyDriver, checkOnline)
 router.post("/driver/set-fcm-token", verifyDriver, setFcmToken)

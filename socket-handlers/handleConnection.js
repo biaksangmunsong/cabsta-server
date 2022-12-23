@@ -3,8 +3,6 @@ const User = require("../db-models/User")
 const Driver = require("../db-models/Driver")
 const abortARideRequest = require("./handlers/abortARideRequest")
 const syncRequestTimeout = require("./handlers/driver/syncRequestTimeout")
-const updateDriverLocationForEveryone = require("./handlers/driver/updateLocationForEveryone")
-const updateDriversLocationForRide = require("./handlers/driver/updateLocationForRide")
 const rejectRideRequest = require("./handlers/driver/rejectRideRequest")
 
 module.exports = async (io, socket, redisClient) => {
@@ -52,12 +50,6 @@ module.exports = async (io, socket, redisClient) => {
                     if (tokenData.iat >= jwtValidFrom){
                         socket.join(tokenData.driverId)
                         
-                        socket.on("update-driver-location-for-everyone", coords => {
-                            updateDriverLocationForEveryone(coords, tokenData.driverId, redisClient)
-                        })
-                        socket.on("update-driver-location-for-ride", (coords, userId) => {
-                            updateDriversLocationForRide(coords, tokenData.driverId, userId, io, redisClient)
-                        })
                         socket.on("broadcast-driver-unresponsive", () => {
                             try {
                                 socket.broadcast.emit("driver-available", tokenData.driverId)

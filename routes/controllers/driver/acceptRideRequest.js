@@ -56,6 +56,7 @@ module.exports = async (req, res, next) => {
         const driversLiveLocation = {
             lat: driverActiveCheck.coords.latitude,
             lng: driverActiveCheck.coords.longitude,
+            speed: 0,
             millis: Date.now()
         }
         await redisClient.sendCommand([
