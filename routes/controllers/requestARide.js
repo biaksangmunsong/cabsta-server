@@ -89,7 +89,10 @@ module.exports = async (req, res, next) => {
         }
 
         // check if driver has any uncompleted rides
-        const uncompletedRide = await Ride.findOne({driverId})
+        const uncompletedRide = await Ride.findOne({
+            driverId,
+            status: "initiated"
+        })
         if (uncompletedRide){
             return next({
                 status: 409,
@@ -124,7 +127,7 @@ module.exports = async (req, res, next) => {
             ...rideDetails,
             price: rideDetails.price[vehicleType],
             vehicleType,
-            requestIat: Date.now(),
+            requestedAt: Date.now(),
             user: {
                 _id: userDetails._id,
                 name: usersName,

@@ -46,7 +46,7 @@ module.exports = async (req, res, next) => {
                 ...request,
                 requestIat: undefined
             },
-            requestIat: request.requestIat
+            requestedAt: request.requestedAt
         })
         await newRide.save()
 

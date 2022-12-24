@@ -10,7 +10,10 @@ module.exports = async (req, res, next) => {
         const check = await checkDriverActive(driverId, redisClient)
 
         // check if there are any uncompleted rides
-        let uncompletedRide = await Ride.findOne({driverId})
+        let uncompletedRide = await Ride.findOne({
+            driverId,
+            status: "initiated"
+        })
         if (uncompletedRide){
             uncompletedRide = uncompletedRide.toJSON()
         }

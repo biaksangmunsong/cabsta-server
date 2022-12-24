@@ -21,6 +21,7 @@ const getPricingData = require("./controllers/getPricingData")
 const getActiveDrivers = require("./controllers/getActiveDrivers")
 const requestARide = require("./controllers/requestARide")
 const getRideDetails = require("./controllers/getRideDetails")
+const cancelRide = require("./controllers/cancelRide")
 
 const driverSignin = require("./controllers/driver/signin")
 const updateLocationForEveryone = require("./controllers/driver/updateLocationForEveryone")
@@ -462,6 +463,7 @@ router.get("/get-vehicle-selector-page-data", verifyUser, withRideDetails, getVe
 router.get("/get-active-drivers", verifyUser, withRideDetails, getActiveDrivers)
 router.post("/request-a-ride", verifyUser, withRideDetails, requestARide)
 router.get("/get-ride-details", verifyUser, getRideDetails)
+router.post("/cancel-ride", verifyUser, cancelRide)
 
 router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)

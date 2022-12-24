@@ -32,8 +32,10 @@ module.exports = async (req, res, next) => {
         }
 
         // check if driver has any uncompleted rides
-        const uncompletedRide = await Ride.findOne({driverId})
-        
+        const uncompletedRide = await Ride.findOne({
+            driverId,
+            status: "initiated"
+        })
         if (uncompletedRide){
             return next({
                 status: 405,

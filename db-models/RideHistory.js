@@ -2,10 +2,10 @@ const mongoose = require("mongoose")
 const ObjectId = mongoose.Types.ObjectId
 const Schema = mongoose.Schema
 
-const RideSchema = new Schema({
+const RideHistorySchema = new Schema({
     status: {
         type: String,
-        default: "initiated"
+        required: true
     },
     driverId: {
         type: ObjectId,
@@ -19,11 +19,19 @@ const RideSchema = new Schema({
         type: Map,
         required: true
     },
-    requestedAt: {
+    reasonForCancellation: {
+        type: String,
+        required: false
+    },
+    requestIat: {
         type: Number,
         required: true
     },
     acceptedAt: {
+        type: Number,
+        required: true
+    },
+    iat: {
         type: Number,
         default: Date.now
     }
@@ -31,6 +39,6 @@ const RideSchema = new Schema({
 
 mongoose.models = {}
 
-const Ride = mongoose.model("rides", RideSchema)
+const RideHistory = mongoose.model("history-rides", RideHistorySchema)
 
-module.exports = Ride
+module.exports = RideHistory
