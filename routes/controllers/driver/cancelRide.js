@@ -1,11 +1,10 @@
 const ObjectId = require('mongoose').Types.ObjectId
-const Ride = require("../../db-models/Ride")
-const { getMessaging } = require("firebase-admin/messaging")
+const Ride = require("../../../db-models/Ride")
 
 module.exports = async (req, res, next) => {
     
     try {
-        const userId = req.userId
+        const driverId = req.driverId
         const rideId = req.body.rideId
         const reason = String(req.body.reason || "")
         const redisClient = req.redisClient
@@ -42,13 +41,13 @@ module.exports = async (req, res, next) => {
         // update status
         const ride = await Ride.findOneAndUpdate({
             _id: rideId,
-            userId,
+            driverId,
             status: "initiated"
         }, {
             status: "cancelled",
             cancellation: {
                 iat: Date.now(),
-                iby: "passenger",
+                iby: "driver",
                 reason
             }
         })
@@ -61,7 +60,7 @@ module.exports = async (req, res, next) => {
             })
         }
         const rideData = ride.toJSON()
-        const driverId = String(ride.driverId)
+        const userId = String(rideData.userId)
         
         // delete driver's live location from redis
         await redisClient.sendCommand([
@@ -69,46 +68,15 @@ module.exports = async (req, res, next) => {
             `drivers_live_location:${driverId}`
         ])
 
-        // send to driver that ride is cancelled
-        const driverFcmToken = await redisClient.sendCommand([
-            "GET",
-            `driver_fcm_token:${driverId}`
-        ])
+        // send to passenger that ride is cancelled
         const cancellation = {
             iat: Date.now(),
-            iby: "passenger"
+            iby: "driver"
         }
-        if (driverFcmToken){
-            try {
-                const fcmMessage = {
-                    token: driverFcmToken,
-                    notification: {
-                        title: "Ride Cancelled",
-                        body: `${rideData.details.user.name} cancelled a ride.`
-                    },
-                    data: {
-                        for: "ride-cancellation",
-                        rideId,
-                        cancellation: JSON.stringify(cancellation)
-                    },
-                    android: {
-                        ttl: 86400*1000, // one day (non-negative duration in milliseconds)
-                        priority: "high",
-                        notification: {
-                            sound: "twinkle.mp3",
-                            channel_id: "ride-cancellation",
-                            tag: "ride-cancellation"
-                        }
-                    }
-                }
-                await getMessaging().send(fcmMessage)
-                socketIo.in(driverId).emit("ride-cancelled", {
-                    rideId,
-                    cancellation
-                })
-            }
-            catch {}
-        }
+        socketIo.in(userId).emit("ride-cancelled", {
+            rideId,
+            cancellation
+        })
         
         // send response
         res

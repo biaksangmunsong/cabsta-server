@@ -1,9 +1,10 @@
 const Ride = require("../../../db-models/Ride")
 const getDriverOffline = require("../../../lib/getDriverOffline")
 const checkDriverActive = require("../../../lib/checkDriverActive")
+const reasonsForCancellation = require("../../../lib/reasonsForCancellation")
 
 module.exports = async (req, res, next) => {
-
+    
     try {
         const redisClient = req.redisClient
         const driverId = req.driverId
@@ -68,7 +69,8 @@ module.exports = async (req, res, next) => {
         // notify passenger
         socketIo.in(request.user._id).emit("ride-request-accepted", {
             ...responseData,
-            driversLiveLocation
+            driversLiveLocation,
+            reasonsForCancellation
         })
         
         // remove ride request from redis

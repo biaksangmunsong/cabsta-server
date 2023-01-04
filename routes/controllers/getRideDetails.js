@@ -1,5 +1,6 @@
 const ObjectId = require('mongoose').Types.ObjectId
 const Ride = require("../../db-models/Ride")
+const reasonsForCancellation = require("../../lib/reasonsForCancellation")
 
 module.exports = async (req, res, next) => {
     
@@ -32,7 +33,17 @@ module.exports = async (req, res, next) => {
             })
         }
         const responseData = rideDetails.toJSON()
-
+        if (responseData.cancellation){
+            responseData.cancellation.reason = undefined
+        }
+        if (responseData.status !== "initiated"){
+            responseData.details.user.phoneNumber = undefined
+            responseData.details.user.countryCode = undefined
+            responseData.details.driver.phoneNumber = undefined
+            responseData.details.driver.countryCode = undefined
+        }
+        responseData.reasonsForCancellation = reasonsForCancellation
+        
         // get driver's live location
         const driversLiveLocation = await redisClient.sendCommand([
             "GET",

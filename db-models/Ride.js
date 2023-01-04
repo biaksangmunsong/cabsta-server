@@ -26,6 +26,14 @@ const RideSchema = new Schema({
     acceptedAt: {
         type: Number,
         default: Date.now
+    },
+    cancellation: {
+        type: Map,
+        required: null
+    },
+    completedAt: {
+        type: Number,
+        required: false
     }
 })
 

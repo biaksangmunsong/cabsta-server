@@ -14,8 +14,24 @@ module.exports = async (req, res, next) => {
             driverId,
             status: "initiated"
         })
+        let rideRequest = null
         if (uncompletedRide){
             uncompletedRide = uncompletedRide.toJSON()
+        }
+        else {
+            // check if there is a ride request
+            const requestId = `ride_request:${driverId}`
+            rideRequest = await redisClient.sendCommand([
+                "GET",
+                requestId
+            ])
+            if (rideRequest){
+                const parsedRideRequest = JSON.parse(rideRequest)
+                rideRequest = {
+                    usersPhoto: parsedRideRequest.user.photo ? parsedRideRequest.user.photo.thumbnail_url : "",
+                    serverMillis: Date.now()
+                }
+            }
         }
         
         // send response
@@ -24,7 +40,8 @@ module.exports = async (req, res, next) => {
         .set("Cache-Control", "no-store")
         .json({
             ...check,
-            uncompletedRide
+            uncompletedRide,
+            rideRequest
         })
     }
     catch (err){
