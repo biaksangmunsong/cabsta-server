@@ -35,6 +35,7 @@ const getRideRequestDetails = require("./controllers/driver/getRideRequestDetail
 const acceptRideRequest = require("./controllers/driver/acceptRideRequest")
 const checkRideStatus = require("./controllers/driver/checkRideStatus")
 const cancelRideByDriver = require("./controllers/driver/cancelRide")
+const completeRide = require("./controllers/driver/completeRide")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
@@ -480,5 +481,6 @@ router.get("/driver/get-ride-request-details", verifyDriver, getRideRequestDetai
 router.get("/driver/accept-ride-request", verifyDriver, acceptRideRequest)
 router.get("/driver/check-ride-status", verifyDriver, checkRideStatus)
 router.post("/driver/cancel-ride", verifyDriver, cancelRideByDriver)
+router.post("/driver/complete-ride", verifyDriver, completeRide)
 
 module.exports = router

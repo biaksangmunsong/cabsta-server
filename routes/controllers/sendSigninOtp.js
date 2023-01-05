@@ -1,5 +1,7 @@
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
+const axios = require("axios")
+const genOtp = require("../../lib/genOtp")
 
 module.exports = async (req, res, next) => {
 
@@ -37,7 +39,7 @@ module.exports = async (req, res, next) => {
         }
         
         // create otp doc
-        const otp = "1234"
+        const otp = genOtp(4)
         const salt = await bcrypt.genSalt(10)
         const hashedOtp = await bcrypt.hash(otp, salt)
         const newOtp = {
@@ -49,22 +51,22 @@ module.exports = async (req, res, next) => {
         await redisClient.sendCommand([
             "SETEX",
             `otps:signin:${phoneNumber.phoneNumber}`,
-            "60",
+            "300",
             JSON.stringify(newOtp)
         ])
         
         // send otp
-        setTimeout(async () => {
-            // simulate sending otp with timeout
-            // send response
-            res
-            .status(200)
-            .set("Cache-Control", "no-store")
-            .json({
-                phoneNumber: phoneNumber.phoneNumber,
-                countryCode: phoneNumber.countryCode
-            })
-        }, 1500)
+        const otpRequestUrl = encodeURI(`https://api.textlocal.in/send?apiKey=${process.env.TEXTLOCAL_API_KEY}&sender=CABSTA&numbers=${phoneNumber.phoneNumber}&message=?apiKey=NGE3NTcwNzc3NDRlNDQzMDQ5NDQ3MDQ4NWE3NDMxNjg&sender=CABSTA&message=${otp} is your signin otp for Cabsta, valid for 5 minutes.\n\nPowered by Siksakol Transportation Services Private Limited.`)
+        await axios.get(otpRequestUrl)
+        
+        // send response
+        res
+        .status(200)
+        .set("Cache-Control", "no-store")
+        .json({
+            phoneNumber: phoneNumber.phoneNumber,
+            countryCode: phoneNumber.countryCode
+        })
     }
     catch (err){
         console.log(err)

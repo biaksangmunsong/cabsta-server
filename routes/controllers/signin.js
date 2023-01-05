@@ -37,6 +37,27 @@ module.exports = async (req, res, next) => {
         }
         otpDoc = JSON.parse(otpDoc)
         
+        // allow opt attempt only once every 2 seconds
+        const attemptId = `signin_attempt:${phoneNumber.phoneNumber}`
+        const otpAttempt = await redisClient.sendCommand([
+            "GET",
+            attemptId
+        ])
+        await redisClient.sendCommand([
+            "SETEX",
+            attemptId,
+            "2",
+            JSON.stringify(otp)
+        ])
+        if (otpAttempt){
+            return next({
+                status: 429,
+                data: {
+                    message: "Please wait 2 seconds and try again."
+                }
+            })
+        }
+        
         // validate otp
         const otpIsValid = await bcrypt.compare(otp, otpDoc.otp)
         if (!otpIsValid){
