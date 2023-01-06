@@ -72,6 +72,7 @@ module.exports = async (req, res, next) => {
             driversLiveLocation,
             reasonsForCancellation
         })
+        socketIo.in(request.user._id).emit("refresh-history")
         
         // remove ride request from redis
         await redisClient.sendCommand([

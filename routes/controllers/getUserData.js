@@ -1,4 +1,5 @@
 const User = require("../../db-models/User")
+const getUncompletedRides = require("../../lib/getUncompletedRides")
 
 module.exports = async (req, res, next) => {
 
@@ -16,6 +17,9 @@ module.exports = async (req, res, next) => {
             })
         }
 
+        // get upto 5 uncompleted rides
+        const uncompletedRides = await getUncompletedRides(userId, 5)
+        
         // send response
         res
         .status(200)
@@ -25,7 +29,8 @@ module.exports = async (req, res, next) => {
             phoneNumber: user.phoneNumber,
             countryCode: user.countryCode,
             name: user.name,
-            profilePhoto: user.profilePhoto
+            profilePhoto: user.profilePhoto,
+            uncompletedRides
         })
     }
     catch (err){

@@ -109,6 +109,9 @@ module.exports = async (req, res, next) => {
             }
             catch {}
         }
+
+        // tell user to refresh history
+        socketIo.in(userId).emit("refresh-history")
         
         // send response
         res

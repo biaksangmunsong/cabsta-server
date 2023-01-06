@@ -77,6 +77,7 @@ module.exports = async (req, res, next) => {
             rideId,
             cancellation
         })
+        socketIo.in(userId).emit("refresh-history")
         
         // send response
         res

@@ -1,5 +1,6 @@
 const ObjectId = require('mongoose').Types.ObjectId
 const Ride = require("../../../db-models/Ride")
+const calculateEarnings = require("../../../lib/calculateEarnings")
 
 module.exports = async (req, res, next) => {
     
@@ -51,12 +52,26 @@ module.exports = async (req, res, next) => {
             rideId,
             completedAt: now
         })
+        socketIo.in(userId).emit("refresh-history")
         
-        // send response
-        res
-        .status(200)
-        .set("Cache-Control", "no-store")
-        .send("OK")
+        try {
+            const todaysEarning = await calculateEarnings(driverId, "today")
+            
+            // send response
+            res
+            .status(200)
+            .set("Cache-Control", "no-store")
+            .json({todaysEarning})
+        }
+        catch {
+            // send response anyway
+            res
+            .status(200)
+            .set("Cache-Control", "no-store")
+            .json({
+                todaysEarning: null
+            })
+        }
     }
     catch (err){
         console.log(err)

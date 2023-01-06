@@ -1,5 +1,6 @@
 const checkDriverActive = require("../../../lib/checkDriverActive")
 const Ride = require("../../../db-models/Ride")
+const calculateEarnings = require("../../../lib/calculateEarnings")
 
 module.exports = async (req, res, next) => {
     
@@ -33,6 +34,9 @@ module.exports = async (req, res, next) => {
                 }
             }
         }
+
+        // get earnings for today
+        const todaysEarning = await calculateEarnings(driverId, "today")
         
         // send response
         res
@@ -41,7 +45,8 @@ module.exports = async (req, res, next) => {
         .json({
             ...check,
             uncompletedRide,
-            rideRequest
+            rideRequest,
+            todaysEarning
         })
     }
     catch (err){
