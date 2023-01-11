@@ -24,6 +24,7 @@ const requestARide = require("./controllers/requestARide")
 const getRideDetails = require("./controllers/getRideDetails")
 const cancelRide = require("./controllers/cancelRide")
 const getUncompletedRides = require("./controllers/getUncompletedRides")
+const checkRideStatus = require("./controllers/checkRideStatus")
 
 const driverSignin = require("./controllers/driver/signin")
 const updateLocationForEveryone = require("./controllers/driver/updateLocationForEveryone")
@@ -34,17 +35,34 @@ const checkOnline = require("./controllers/driver/checkOnline")
 const setFcmToken = require("./controllers/driver/setFcmToken")
 const getRideRequestDetails = require("./controllers/driver/getRideRequestDetails")
 const acceptRideRequest = require("./controllers/driver/acceptRideRequest")
-const checkRideStatus = require("./controllers/driver/checkRideStatus")
+const checkRideStatusForDriver = require("./controllers/driver/checkRideStatus")
 const cancelRideByDriver = require("./controllers/driver/cancelRide")
 const completeRide = require("./controllers/driver/completeRide")
 const getEarnings = require("./controllers/driver/getEarnings")
 
 // const SavedPlace = require("../db-models/SavedPlace")
 const Driver = require("../db-models/Driver")
+// const Ride = require("../db-models/Ride")
 const { getMessaging } = require("firebase-admin/messaging")
  
 router.get("/", async (req, res, next) => {
     res.send("Hello from Cabsta Api")
+    // try {
+    //     await Ride.findOneAndUpdate({_id: "63b7c26060d7735038475431"}, {
+    //         status: "cancelled",
+    //         cancellation: {
+    //             iat: 1673269527942,
+    //             iby: "driver",
+    //             reason: "because"
+    //         }
+    //         // status: "completed",
+    //         // completedAt: 1673269527942
+    //     })
+    //     res.send("OK")
+    // }
+    // catch (err){
+    //     console.log(err.message)
+    // }
 })
 
 
@@ -472,6 +490,7 @@ router.post("/request-a-ride", verifyUser, withRideDetails, requestARide)
 router.get("/get-ride-details", verifyUser, getRideDetails)
 router.post("/cancel-ride", verifyUser, cancelRide)
 router.get("/get-uncompleted-rides", verifyUser, getUncompletedRides)
+router.get("/check-ride-status", verifyUser, checkRideStatus)
 
 router.post("/driver/signin", driverSignin)
 router.post("/driver/get-online", verifyDriver, getOnline)
@@ -482,7 +501,7 @@ router.get("/driver/check-online", verifyDriver, checkOnline)
 router.post("/driver/set-fcm-token", verifyDriver, setFcmToken)
 router.get("/driver/get-ride-request-details", verifyDriver, getRideRequestDetails)
 router.get("/driver/accept-ride-request", verifyDriver, acceptRideRequest)
-router.get("/driver/check-ride-status", verifyDriver, checkRideStatus)
+router.get("/driver/check-ride-status", verifyDriver, checkRideStatusForDriver)
 router.post("/driver/cancel-ride", verifyDriver, cancelRideByDriver)
 router.post("/driver/complete-ride", verifyDriver, completeRide)
 router.get("/driver/get-earnings", verifyDriver, getEarnings)

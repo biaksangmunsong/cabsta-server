@@ -1,11 +1,12 @@
 const ObjectId = require('mongoose').Types.ObjectId
-const Ride = require("../../../db-models/Ride")
+const Ride = require("../../db-models/Ride")
 
 module.exports = async (req, res, next) => {
     
     try {
-        const driverId = req.driverId
+        const userId = req.userId
         const rideId = String(req.query.rideId || "")
+        const socketIo = req.socketIo
 
         // validate ride id
         if (!ObjectId.isValid(rideId)){
@@ -20,7 +21,7 @@ module.exports = async (req, res, next) => {
         // get ride data from database
         let ride = await Ride.findOne({
             _id: rideId,
-            driverId
+            userId
         })
         if (!ride){
             return next({
@@ -31,6 +32,11 @@ module.exports = async (req, res, next) => {
             })
         }
         ride = ride.toJSON()
+
+        if (ride.status !== "initiated"){
+            // tell user to refresh history
+            socketIo.in(userId).emit("refresh-history")
+        }
         
         // send response
         res

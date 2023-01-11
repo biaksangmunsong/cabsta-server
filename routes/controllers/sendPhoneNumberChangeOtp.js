@@ -1,6 +1,8 @@
 const User = require("../../db-models/User")
 const { phone } = require("phone")
 const bcrypt = require("bcryptjs")
+const axios = require("axios")
+const genOtp = require("../../lib/genOtp")
 
 module.exports = async (req, res, next) => {
 
@@ -49,7 +51,7 @@ module.exports = async (req, res, next) => {
         }
 
         // send otp to new phone number
-        const otp = "1234"
+        const otp = genOtp(4)
         const salt = await bcrypt.genSalt(10)
         const hashedOtp = await bcrypt.hash(otp, salt)
         const newOtp = {
@@ -61,9 +63,13 @@ module.exports = async (req, res, next) => {
         await redisClient.sendCommand([
             "SETEX",
             `otps:phone_number_change:${newPhoneNumber.phoneNumber}`,
-            "60",
+            "300",
             JSON.stringify(newOtp)
         ])
+
+        // send otp
+        const otpRequestUrl = encodeURI(`https://api.textlocal.in/send?apiKey=${process.env.TEXTLOCAL_API_KEY}&sender=CABSTA&numbers=${newPhoneNumber.phoneNumber}&message=?apiKey=NGE3NTcwNzc3NDRlNDQzMDQ5NDQ3MDQ4NWE3NDMxNjg&sender=CABSTA&message=${otp} is your otp for changing your Cabsta phone number, valid for 5 minutes.\n\nPowered by Siksakol Transportation Services Private Limited.`)
+        await axios.get(otpRequestUrl)
         
         // send response
         res
