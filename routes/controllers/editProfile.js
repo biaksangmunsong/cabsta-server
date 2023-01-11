@@ -90,14 +90,6 @@ module.exports = async (req, res, next) => {
                         crop: "fill",
                         gravity: "face",
                         format: "jpg"
-                    },
-                    {
-                        width: 200,
-                        height: 200,
-                        crop: "fill",
-                        gravity: "face",
-                        radius: "max",
-                        format: "png"
                     }
                 ]
             })
@@ -106,8 +98,7 @@ module.exports = async (req, res, next) => {
             user.profilePhoto = {
                 public_id: uploadedFile.public_id,
                 url: uploadedFile.eager[0].secure_url,
-                thumbnail_url: uploadedFile.eager[1].secure_url,
-                circle_thumbnail_url: uploadedFile.eager[2].secure_url
+                thumbnail_url: uploadedFile.eager[1].secure_url
             }
             user.name = name
 
